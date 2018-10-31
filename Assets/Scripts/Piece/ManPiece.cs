@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class ManPiece : Piece {
 
+    
     protected string enemy_tag;
     protected int forward;
 
     protected ArrayList movementsTree;
-    private int biggestDepth;
+    protected int biggestDepth;
 
     protected override bool CanCapture(int offsetX, int offsetY)
     {
@@ -79,8 +80,10 @@ public class ManPiece : Piece {
         return possibleCaptureMovents;
     }
 
-   
 
+    /// <summary>
+    /// Return all the walk movements of the piece in a ArrayList.
+    /// </summary>
     public override ArrayList GetWalkMovements()
     {
         ArrayList possibleWalkMovents = new ArrayList();
@@ -95,27 +98,46 @@ public class ManPiece : Piece {
         return possibleWalkMovents;
     }
 
+
+    /// <summary>
+    /// Return a matrix with the best moves considering the Majority Law.
+    /// </summary>
+    /// <remarks>
+    /// ---MAJORITY LAW---
+    ///  If more than one capture mode is shown in the
+    ///  same move, it is mandatory to execute the movement
+    ///  that captures the largest number of pieces.
+    /// </remarks>
     public ArrayList GetBestSucessiveCapture()
     {
+        // Prepare the variables to contruct a tree.
         this.movementsTree = new ArrayList();
         this.biggestDepth = 0;
         ArrayList path = new ArrayList();
-
+        // Retire the current piece of the board.
         Transform originalParent = transform.parent;
         Transform overlay = GameObject.FindGameObjectWithTag("OverLay").transform;
         transform.SetParent(overlay);
 
+        // Contruct a tree recursively.
         contructTree(base.position, path , 0);
 
+        // Put the current piece back to the board.
         transform.SetParent(originalParent);
-        return ExtractBiggerSequences(movementsTree);
+
+        return ApplyMajorityLaw(movementsTree);
     }
 
 
+    /// <summary>
+    /// Greed Recursive method that return all sequence of capture movements.
+    /// Also sets the biggestDepth variable.
+    /// </summary>
     public void contructTree(IntVector2 currentPos, ArrayList path, int depth)
     {
         ArrayList possibleMoves = GetCaptureMovements2(currentPos, path);
 
+        // Stop when reach the leafs.
         if (possibleMoves.Count == 0 )
         {
             movementsTree.Add(path.Clone());
@@ -134,6 +156,9 @@ public class ManPiece : Piece {
 
     }
 
+    /// <summary>
+    /// Return a list of Movements given the current position.
+    /// </summary>
     public ArrayList GetCaptureMovements2(IntVector2 currentPos, ArrayList path)
     {
         ArrayList possibleCaptureMovents = new ArrayList();
@@ -167,7 +192,11 @@ public class ManPiece : Piece {
     }
 
 
-    protected  bool CanCapture2(int offsetX, int offsetY, IntVector2 pos)
+    /// <summary>
+    /// Return true if this piece can capture the other one located in
+    /// a given position + offset.
+    /// </summary>
+    protected bool CanCapture2(int offsetX, int offsetY, IntVector2 pos)
     {
         if (base.board.WithinBounds( pos.x + offsetX,  pos.y + offsetY))
         {
@@ -198,7 +227,10 @@ public class ManPiece : Piece {
         return false;
     }
 
-    public ArrayList ExtractBiggerSequences( ArrayList matrix)
+    /**
+     * Given a matrix of Movements, return the longest ones.
+     */
+    public ArrayList ApplyMajorityLaw( ArrayList matrix)
     {
 
         ArrayList result = new ArrayList();
@@ -213,6 +245,9 @@ public class ManPiece : Piece {
         return result;
     }
 
+    /**
+     * Compare to see if a enemy already was captured based in it's position.
+     */
     private bool alreadyCaptured(ArrayList path, IntVector2 enemyPos)
     {
         foreach( Movement move in path)
@@ -226,6 +261,9 @@ public class ManPiece : Piece {
         return false;
     }
 
+    /**
+     * Print a list o Movements.
+     */
     private void printMovements(ArrayList list)
     {
         string message = "Movements - ";
@@ -235,5 +273,4 @@ public class ManPiece : Piece {
         }
         Debug.Log(message);
     }
-
 }

@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/**
+ * Descibe a movement that can be done in the board.
+ */
 public class Movement {
 
     IntVector2 originalPosition;
@@ -22,6 +25,9 @@ public class Movement {
         this.capturedPiece = capturedPiece;
     }
 
+    /**
+     * See if the movement has captured a enemy.
+     */
     public bool hasCapturedAnEnemy()
     {
         if (capturedPiece != null)

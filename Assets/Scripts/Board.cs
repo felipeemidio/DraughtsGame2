@@ -34,7 +34,8 @@ public class Board : MonoBehaviour {
     private Vector3 destinyPosition;
 
     private PlayerManPiece currentPiece;
-    private GameObject overlay; // Use this to put to the piece overlay other sprites.
+    // Use this to put to the piece overlay other sprites.
+    private GameObject overlay;
     private GameObject targetTile;
     private GameController gameController;
     private ArrayList canMove = null;
@@ -160,6 +161,7 @@ public class Board : MonoBehaviour {
             if( (pieceWithinSucessiveCapture != null && pieceWithinSucessiveCapture == currentPiece)
                 || pieceWithinSucessiveCapture == null)
             {
+                /** TODO: Set the best options as mandatory*/
                 printTree(currentPiece.GetBestSucessiveCapture());
                 // Get Possible moves that piece can make.
                 canMove = currentPiece.GetCaptureMovements();
@@ -339,9 +341,9 @@ public class Board : MonoBehaviour {
         Debug.Log(message);
     }
 
-    /**
-     * Return a Tile of the board.
-     */
+    /// <summary>
+    /// Return a Tile of the board.
+    /// </summary>
     public GameObject GetTile(int row, int collumn)
     {
 
@@ -353,9 +355,9 @@ public class Board : MonoBehaviour {
         return null;       
     }
 
-    /**
-     * Verify if the row and column contains in the board.
-     */
+    /// <summary>
+    /// Verify if the row and column contains in the board.
+    /// </summary>
     public bool WithinBounds(int r, int c)
     {
         if (r > 0 && r <= 8 && c > 0 && c <= 8)

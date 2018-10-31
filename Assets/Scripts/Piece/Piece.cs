@@ -54,24 +54,24 @@ abstract public class Piece : MonoBehaviour {
         return hasBeenCaptured;
     }
 
-    /**
-     * Return all the walk movements of the piece in a ArrayList.
-     */
+    /// <summary>
+    /// Return all the walk movements of the piece in a ArrayList.
+    /// </summary>
     public abstract ArrayList GetWalkMovements();
 
-    /**
-     * Return all the capture movements of the piece in a ArrayList.
-     */
+    /// <summary>
+    /// Return all the capture movements of the piece in a ArrayList.
+    /// </summary>
     public abstract ArrayList GetCaptureMovements();
 
-    /**
-     * Verify if the tile 'currentPosition + offset' can be walked to.
-     */
+    /// <summary>
+    /// Verify if the tile 'currentPosition + offset' can be walked to.
+    /// </summary>
     protected abstract bool CanWalk(int offsetX, int offsetY);
 
-    /**
-     * Verify if the tile 'currentPosition + offset' has a enemy's piece and can be captured.
-     */
+    /// <summary>
+    ///  Verify if the tile 'currentPosition + offset' has a enemy's piece and can be captured.
+    /// </summary>
     protected abstract bool CanCapture(int offsetX, int offsetY);
 
 
