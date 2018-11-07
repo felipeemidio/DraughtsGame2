@@ -162,15 +162,16 @@ public class Board : MonoBehaviour {
                 || pieceWithinSucessiveCapture == null)
             {
                 /** TODO: Set the best options as mandatory*/
-                printTree(currentPiece.GetBestSucessiveCapture());
+                //printTree(currentPiece.GetBestSucessiveCapture());
                 // Get Possible moves that piece can make.
-                canMove = currentPiece.GetCaptureMovements();
+                //canMove = currentPiece.GetCaptureMovements();
+                canMove = currentPiece.GetBestSucessiveCapture();
                 if (canMove.Count == 0 && !someCanCapture)
                 {
                     canMove = currentPiece.GetWalkMovements();
                 }
                 // Change the color of the avaliable tiles.
-                foreach (Vector2 e in canMove)
+                foreach (IntVector2 e in canMove)
                 {
                     GetTile((int)e.x, (int)e.y).GetComponent<Image>().color = possibiliteColor;
                 }
@@ -184,17 +185,19 @@ public class Board : MonoBehaviour {
             
 
             TileHandler tileScript = tile.GetComponent<TileHandler>();
-            Vector2 tilePosition = new Vector2(tileScript.getRow(), tileScript.getColumn() );
-
-
-            if (canMove != null && canMove.Contains(tilePosition))
+            IntVector2 tilePosition = new IntVector2(tileScript.getRow(), tileScript.getColumn() );
+            Debug.Log("tile position: " + tilePosition.ToString() + "\n canMove: " + PrintMovements(canMove));
+            Debug.Log(this.Contain(canMove, tilePosition));
+            if (canMove != null && this.Contain(canMove, tilePosition))
             {
+
+                Debug.Log("Entrou");
                 /*
                  * Change the piece's parent to the 'overlay' object
                  * because we want the piece above others sprites.
                  */
                 TileHandler currentTile = currentPiece.transform.parent.GetComponent<TileHandler>();
-                Vector2 currentPosition = new Vector2 (currentTile.getRow(), currentTile.getColumn());
+                IntVector2 currentPosition = new IntVector2(currentTile.getRow(), currentTile.getColumn());
 
                 // It is a capture movement?
                 if ( Mathf.Abs(tilePosition.x - currentPosition.x) >= 2)
@@ -265,7 +268,7 @@ public class Board : MonoBehaviour {
     {
         if (canMove != null)
         {
-            foreach (Vector2 e in canMove)
+            foreach (IntVector2 e in canMove)
             {
                 GetTile((int)e.x, (int)e.y).GetComponent<Image>().color = new Color(0.3113f, 0.3113f, 0.3113f);
             }
@@ -325,6 +328,17 @@ public class Board : MonoBehaviour {
         }
     }
 
+    private string PrintMovements(ArrayList list)
+    {
+        string result = "";
+        foreach (IntVector2 pos in list)
+        {
+            result += pos.ToString() + " - ";
+        }
+        result += "final.";
+        return result;
+    }
+
     private void printTree(ArrayList matrix)
     {
         string message = "";
@@ -339,6 +353,18 @@ public class Board : MonoBehaviour {
         }
 
         Debug.Log(message);
+    }
+
+    private bool Contain(ArrayList list, IntVector2 originalPos)
+    {
+        foreach (IntVector2 pos in list)
+        {
+            if(pos.x == originalPos.x && pos.y == originalPos.y)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>

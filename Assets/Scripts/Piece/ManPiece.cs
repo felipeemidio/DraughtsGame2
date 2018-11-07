@@ -62,19 +62,19 @@ public class ManPiece : Piece {
 
         if (CanCapture(1, 1))
         {
-            possibleCaptureMovents.Add(new Vector2(base.position.x + 2, base.position.y + 2));
+            possibleCaptureMovents.Add(new IntVector2(base.position.x + 2, base.position.y + 2));
         }
         if (CanCapture(1, -1))
         {
-            possibleCaptureMovents.Add(new Vector2(base.position.x + 2, base.position.y - 2));
+            possibleCaptureMovents.Add(new IntVector2(base.position.x + 2, base.position.y - 2));
         }
         if (CanCapture(-1, 1))
         {
-            possibleCaptureMovents.Add(new Vector2(base.position.x - 2, base.position.y + 2));
+            possibleCaptureMovents.Add(new IntVector2(base.position.x - 2, base.position.y + 2));
         }
         if (CanCapture(-1, -1))
         {
-            possibleCaptureMovents.Add(new Vector2(base.position.x - 2, base.position.y - 2));
+            possibleCaptureMovents.Add(new IntVector2(base.position.x - 2, base.position.y - 2));
         }
 
         return possibleCaptureMovents;
@@ -89,11 +89,11 @@ public class ManPiece : Piece {
         ArrayList possibleWalkMovents = new ArrayList();
         if (CanWalk(forward, 1))
         {
-            possibleWalkMovents.Add(new Vector2(base.position.x + forward, base.position.y + 1));
+            possibleWalkMovents.Add(new IntVector2(base.position.x + forward, base.position.y + 1));
         }
         if (CanWalk(forward, -1))
         {
-            possibleWalkMovents.Add(new Vector2(base.position.x + forward, base.position.y - 1));
+            possibleWalkMovents.Add(new IntVector2(base.position.x + forward, base.position.y - 1));
         }
         return possibleWalkMovents;
     }
@@ -125,7 +125,22 @@ public class ManPiece : Piece {
         // Put the current piece back to the board.
         transform.SetParent(originalParent);
 
-        return ApplyMajorityLaw(movementsTree);
+        // Get just the moves with the majority law.
+        ArrayList bestWays = ApplyMajorityLaw(movementsTree);
+
+        // Get the first moves of each of the best sequences.
+        ArrayList possibleMoves = new ArrayList();
+        foreach (ArrayList list in bestWays)
+        {
+            if(list.Count > 0)
+            {
+                Movement move = (Movement)list[0];
+                possibleMoves.Add(move.getDestinyPosition());
+            }
+            
+        }
+
+        return possibleMoves;
     }
 
 

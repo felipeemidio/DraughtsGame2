@@ -17,18 +17,15 @@ public class GameController : MonoBehaviour {
     /*
      * Initialize variables.
      */
-    void Awake()
+    void Start()
     {
-        turn = Turn.playerTurn;
         board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board> ();
 
-        if(turnText == null)
+        turn = Turn.enemyTurn;
+        this.NextTurn();
+        if (turnText == null)
         {
             Debug.LogError("Turn Text not Found.");
-        }
-        else
-        {
-            turnText.text = "YOUR TURN";
         }
     }
 
