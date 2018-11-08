@@ -15,21 +15,21 @@ abstract public class Piece : MonoBehaviour {
         board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
     }
 
-    /**
-     * set that the piece has been captured and
-     * will be destroyed in the end of the turn.
-     * Also change the opacity of the piece.
-     */
+    /// <summary>
+    ///  set that the piece has been captured and
+    ///  will be destroyed in the end of the turn.
+    ///  Also change the opacity of the piece.
+    /// </summary>
     public void Capture()
     {
         hasBeenCaptured = true;
         this.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.7f);
     }
 
-
-    /**
-     * Set the current position of the piece in the board.
-     */
+    
+    /// <summary>
+    ///  Set the current position of the piece in the board by the parent tile.
+    /// </summary>
     public bool SetCurrentPosition()
     {
         // Get current position.
@@ -60,9 +60,9 @@ abstract public class Piece : MonoBehaviour {
     public abstract ArrayList GetWalkMovements();
 
     /// <summary>
-    /// Return all the capture movements of the piece in a ArrayList.
+    /// Return a list of Movements that capture a piece given the current position.
     /// </summary>
-    public abstract ArrayList GetCaptureMovements();
+    public abstract ArrayList GetCaptureMovements(IntVector2 currentPos, ArrayList path);
 
     /// <summary>
     /// Verify if the tile 'currentPosition + offset' can be walked to.
@@ -72,8 +72,13 @@ abstract public class Piece : MonoBehaviour {
     /// <summary>
     ///  Verify if the tile 'currentPosition + offset' has a enemy's piece and can be captured.
     /// </summary>
-    protected abstract bool CanCapture(int offsetX, int offsetY);
+    protected abstract bool CanCapture(int offsetX, int offsetY, IntVector2 pos);
 
+   
+    public ArrayList GetCaptureMovements()
+    {
+        return GetCaptureMovements(this.position, new ArrayList());
+    }
 
 
 }
