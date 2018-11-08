@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ManPiece : Piece {
-
     
     protected string enemy_tag;
     protected int forward;
@@ -11,22 +10,56 @@ public class ManPiece : Piece {
     protected ArrayList movementsTree;
     protected int biggestDepth;
 
-    //// <summary>
-    /// Verify if the tile 'currentPosition + offset' can be walked to.
+    /// <summary>
+    /// Return a list of Movements given the current position.
     /// </summary>
-    protected override bool CanWalk(int offsetX, int offsetY)
+    public override ArrayList GetCaptureMovements(IntVector2 currentPos, ArrayList path)
     {
-        if (base.board.WithinBounds((int)base.position.x + offsetX, (int)base.position.y + offsetY))
+        ArrayList possibleCaptureMovents = new ArrayList();
+
+        if (CanCapture(1, 1, currentPos) && !alreadyCaptured(path, new IntVector2(currentPos.x + 1, currentPos.y + 1)))
         {
-            
-            GameObject nextTile = base.board.GetTile((int)base.position.x + offsetX, (int)base.position.y + offsetY);
-            // See if the nextTile is occupied.
-            if (nextTile.transform.childCount == 0)
-            {
-                return true;
-            }
+            possibleCaptureMovents.Add(new Movement(currentPos,
+                new IntVector2(currentPos.x + 2, currentPos.y + 2),
+                base.board.GetTile(currentPos.x + 1, currentPos.y + 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
         }
-        return false;
+        if (CanCapture(1, -1, currentPos) && !alreadyCaptured(path, new IntVector2(currentPos.x + 1, currentPos.y - 1)))
+        {
+            possibleCaptureMovents.Add(new Movement(currentPos,
+                new IntVector2(currentPos.x + 2, currentPos.y - 2),
+                base.board.GetTile(currentPos.x + 1, currentPos.y - 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
+        }
+        if (CanCapture(-1, 1, currentPos) && !alreadyCaptured(path, new IntVector2(currentPos.x - 1, currentPos.y + 1)))
+        {
+            possibleCaptureMovents.Add(new Movement(currentPos,
+                new IntVector2(currentPos.x - 2, currentPos.y + 2),
+                base.board.GetTile(currentPos.x - 1, currentPos.y + 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
+        }
+        if (CanCapture(-1, -1, currentPos) && !alreadyCaptured(path, new IntVector2(currentPos.x - 1, currentPos.y - 1)))
+        {
+            possibleCaptureMovents.Add(new Movement(currentPos,
+                new IntVector2(currentPos.x - 2, currentPos.y - 2),
+                base.board.GetTile(currentPos.x - 1, currentPos.y - 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
+        }
+
+        return possibleCaptureMovents;
+    }
+
+    /// <summary>
+    /// Return all the walk movements of the piece in a ArrayList.
+    /// </summary>
+    public override ArrayList GetWalkMovements()
+    {
+        ArrayList possibleWalkMovents = new ArrayList();
+        if (CanWalk(forward, 1))
+        {
+            possibleWalkMovents.Add(new IntVector2(base.position.x + forward, base.position.y + 1));
+        }
+        if (CanWalk(forward, -1))
+        {
+            possibleWalkMovents.Add(new IntVector2(base.position.x + forward, base.position.y - 1));
+        }
+        return possibleWalkMovents;
     }
 
     /// <summary>
@@ -64,58 +97,23 @@ public class ManPiece : Piece {
         return false;
     }
 
-    /// <summary>
-    /// Return all the walk movements of the piece in a ArrayList.
+    //// <summary>
+    /// Verify if the tile 'currentPosition + offset' can be walked to.
     /// </summary>
-    public override ArrayList GetWalkMovements()
+    protected override bool CanWalk(int offsetX, int offsetY)
     {
-        ArrayList possibleWalkMovents = new ArrayList();
-        if (CanWalk(forward, 1))
+        if (base.board.WithinBounds((int)base.position.x + offsetX, (int)base.position.y + offsetY))
         {
-            possibleWalkMovents.Add(new IntVector2(base.position.x + forward, base.position.y + 1));
+
+            GameObject nextTile = base.board.GetTile((int)base.position.x + offsetX, (int)base.position.y + offsetY);
+            // See if the nextTile is occupied.
+            if (nextTile.transform.childCount == 0)
+            {
+                return true;
+            }
         }
-        if (CanWalk(forward, -1))
-        {
-            possibleWalkMovents.Add(new IntVector2(base.position.x + forward, base.position.y - 1));
-        }
-        return possibleWalkMovents;
+        return false;
     }
-
-    /// <summary>
-    /// Return a list of Movements given the current position.
-    /// </summary>
-    public override ArrayList GetCaptureMovements(IntVector2 currentPos, ArrayList path)
-    {
-        ArrayList possibleCaptureMovents = new ArrayList();
-
-        if (CanCapture(1, 1, currentPos) && !alreadyCaptured(path, new IntVector2(currentPos.x + 1, currentPos.y + 1)))
-        {
-            possibleCaptureMovents.Add(new Movement(currentPos,
-                new IntVector2(currentPos.x + 2, currentPos.y + 2),
-                base.board.GetTile(currentPos.x + 1, currentPos.y + 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
-        }
-        if (CanCapture(1, -1, currentPos) && !alreadyCaptured(path, new IntVector2(currentPos.x + 1, currentPos.y - 1)))
-        {
-            possibleCaptureMovents.Add(new Movement(currentPos,
-                new IntVector2(currentPos.x + 2, currentPos.y - 2),
-                base.board.GetTile(currentPos.x + 1, currentPos.y - 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
-        }
-        if (CanCapture(-1, 1, currentPos) && !alreadyCaptured(path, new IntVector2(currentPos.x - 1, currentPos.y + 1)))
-        {
-            possibleCaptureMovents.Add(new Movement(currentPos,
-                new IntVector2(currentPos.x - 2, currentPos.y + 2),
-                base.board.GetTile(currentPos.x - 1, currentPos.y + 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
-        }
-        if (CanCapture(-1, -1, currentPos) && !alreadyCaptured(path, new IntVector2(currentPos.x - 1, currentPos.y - 1)))
-        {
-            possibleCaptureMovents.Add(new Movement(currentPos,
-                new IntVector2(currentPos.x - 2, currentPos.y - 2),
-                base.board.GetTile(currentPos.x - 1, currentPos.y - 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
-        }
-
-        return possibleCaptureMovents;
-    }
-
 
     /// <summary>
     /// Return a matrix with the best moves considering the Majority Law.
@@ -161,7 +159,6 @@ public class ManPiece : Piece {
         return possibleMoves;
     }
 
-
     /// <summary>
     /// Greed Recursive method that return all sequence of capture movements.
     /// Also sets the biggestDepth variable.
@@ -188,8 +185,6 @@ public class ManPiece : Piece {
         }
 
     }
-
-    
 
     /**
      * Given a matrix of Movements, return the longest ones.
