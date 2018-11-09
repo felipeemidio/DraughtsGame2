@@ -70,7 +70,7 @@ public class ManPiece : Piece {
     {
         if (base.board.WithinBounds(pos.x + offsetX, pos.y + offsetY))
         {
-            GameObject nextTile =
+            TileHandler nextTile =
                 base.board.GetTile(pos.x + offsetX, pos.y + offsetY);
             /**
              * See if:
@@ -105,7 +105,7 @@ public class ManPiece : Piece {
         if (base.board.WithinBounds((int)base.position.x + offsetX, (int)base.position.y + offsetY))
         {
 
-            GameObject nextTile = base.board.GetTile((int)base.position.x + offsetX, (int)base.position.y + offsetY);
+            TileHandler nextTile = base.board.GetTile((int)base.position.x + offsetX, (int)base.position.y + offsetY);
             // See if the nextTile is occupied.
             if (nextTile.transform.childCount == 0)
             {
@@ -124,7 +124,7 @@ public class ManPiece : Piece {
     ///  same move, it is mandatory to execute the movement
     ///  that captures the largest number of pieces.
     /// </remarks>
-    public ArrayList GetBestSucessiveCapture()
+    public override ArrayList GetBestSucessiveCapture()
     {
         // Prepare the variables to contruct a tree.
         this.movementsTree = new ArrayList();
@@ -189,7 +189,7 @@ public class ManPiece : Piece {
     /**
      * Given a matrix of Movements, return the longest ones.
      */
-    public ArrayList ApplyMajorityLaw( ArrayList matrix)
+    private ArrayList ApplyMajorityLaw( ArrayList matrix)
     {
 
         ArrayList result = new ArrayList();
@@ -211,6 +211,7 @@ public class ManPiece : Piece {
     {
         foreach( Movement move in path)
         {
+            printMovements(path);
             IntVector2 movePiecePosition = move.getCapturedPiece().GetPosition();
             if (move.hasCapturedAnEnemy() && movePiecePosition.x == enemyPos.x && movePiecePosition.y == enemyPos.y)
             {

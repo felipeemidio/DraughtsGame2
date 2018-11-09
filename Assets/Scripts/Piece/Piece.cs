@@ -74,7 +74,9 @@ abstract public class Piece : MonoBehaviour {
     /// </summary>
     protected abstract bool CanCapture(int offsetX, int offsetY, IntVector2 pos);
 
-   
+    public abstract ArrayList GetBestSucessiveCapture();
+
+
     public ArrayList GetCaptureMovements()
     {
         return GetCaptureMovements(this.position, new ArrayList());

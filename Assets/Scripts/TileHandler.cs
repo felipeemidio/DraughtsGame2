@@ -40,7 +40,7 @@ public class TileHandler : MonoBehaviour {
 
     public void ClickHandler()
     {
-        board.TileClicked ( gameObject, row, column );
+        board.TileClicked ( this, row, column );
     }
 
     public int getRow()
@@ -51,5 +51,10 @@ public class TileHandler : MonoBehaviour {
     public int getColumn()
     {
         return this.column;
+    }
+
+    public IntVector2 getPosition()
+    {
+        return new IntVector2(this.row, this.column);
     }
 }

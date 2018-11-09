@@ -26,24 +26,24 @@ public class Board : MonoBehaviour {
 
     // Private Variables.
     private bool someTileClicked;
-    private GameObject lastTileClicked;
+    private TileHandler lastTileClicked;
     private Color colorLastTileClicked;
 
     private float timeStartedLerping;
     private Vector3 originPosition;
     private Vector3 destinyPosition;
 
-    private PlayerManPiece currentPiece;
+    private Piece currentPiece;
     // Use this to put to the piece overlay other sprites.
     private GameObject overlay;
-    private GameObject targetTile;
+    private TileHandler targetTile;
     private GameController gameController;
     private ArrayList canMove = null;
     private ArrayList allPlayerPieces;
     private ArrayList allEnemyPieces;
     private bool someCanCapture = false;
 
-    private PlayerManPiece pieceWithinSucessiveCapture = null;
+    private Piece pieceWithinSucessiveCapture = null;
 
 
     void Awake()
@@ -69,7 +69,15 @@ public class Board : MonoBehaviour {
         GameObject[] allPiecesObjects = GameObject.FindGameObjectsWithTag("BluePiece");
         foreach (GameObject pieceObject in allPiecesObjects)
         {
-            allPlayerPieces.Add(pieceObject.GetComponent<PlayerManPiece>());
+            if(pieceObject.GetComponent<PlayerManPiece>() != null)
+            {
+                allPlayerPieces.Add(pieceObject.GetComponent<PlayerManPiece>());
+            }
+            else
+            {
+                allPlayerPieces.Add(pieceObject.GetComponent<PlayerKingPiece>());
+            }
+            
         }
 
         // Get all player pieces.
@@ -138,7 +146,7 @@ public class Board : MonoBehaviour {
     /**
      * If a tiled is clicked this function is called. 
      */
-    public void TileClicked(GameObject tile, int row, int collumn)
+    public void TileClicked(TileHandler tile, int row, int collumn)
     {
         ResetPossibleMovements();
         // Do nothing if a piece is already moving.
@@ -158,14 +166,19 @@ public class Board : MonoBehaviour {
 
             // Set the chosen piece as the current one.
             currentPiece = tile.transform.GetChild(0).gameObject.GetComponent<PlayerManPiece>();
+            if(currentPiece == null)
+            {
+                currentPiece = tile.transform.GetChild(0).gameObject.GetComponent<PlayerKingPiece>();
+            }
+
             if( (pieceWithinSucessiveCapture != null && pieceWithinSucessiveCapture == currentPiece)
                 || pieceWithinSucessiveCapture == null)
             {
-                /** TODO: Set the best options as mandatory*/
                 //printTree(currentPiece.GetBestSucessiveCapture());
+
                 // Get Possible moves that piece can make.
-                //canMove = currentPiece.GetCaptureMovements();
                 canMove = currentPiece.GetBestSucessiveCapture();
+                Debug.Log(canMove.Count);
                 if (canMove.Count == 0 && !someCanCapture)
                 {
                     canMove = currentPiece.GetWalkMovements();
@@ -184,14 +197,10 @@ public class Board : MonoBehaviour {
             pieceMoved = true;
             
 
-            TileHandler tileScript = tile.GetComponent<TileHandler>();
-            IntVector2 tilePosition = new IntVector2(tileScript.getRow(), tileScript.getColumn() );
-            Debug.Log("tile position: " + tilePosition.ToString() + "\n canMove: " + PrintMovements(canMove));
-            Debug.Log(this.Contain(canMove, tilePosition));
+            IntVector2 tilePosition = new IntVector2(tile.getRow(), tile.getColumn() );
+            
             if (canMove != null && this.Contain(canMove, tilePosition))
             {
-
-                Debug.Log("Entrou");
                 /*
                  * Change the piece's parent to the 'overlay' object
                  * because we want the piece above others sprites.
@@ -281,7 +290,7 @@ public class Board : MonoBehaviour {
     public bool SomePieceCanCapture()
     {
         ArrayList captureMovements;
-        foreach (PlayerManPiece piece in allPlayerPieces)
+        foreach (Piece piece in allPlayerPieces)
         {
             captureMovements = piece.GetCaptureMovements();
             if (captureMovements.Count != 0)
@@ -314,14 +323,14 @@ public class Board : MonoBehaviour {
         }
 
         destroyedPieces = new ArrayList();
-        foreach (PlayerManPiece piece in allPlayerPieces)
+        foreach (Piece piece in allPlayerPieces)
         {
             if (piece.HasBeenCaptured())
             {
                 destroyedPieces.Add(piece);
             }
         }
-        foreach (PlayerManPiece pieceToBeDestroyed in destroyedPieces)
+        foreach (Piece pieceToBeDestroyed in destroyedPieces)
         {
             allEnemyPieces.Remove(pieceToBeDestroyed);
             Destroy(pieceToBeDestroyed.gameObject);
@@ -370,13 +379,13 @@ public class Board : MonoBehaviour {
     /// <summary>
     /// Return a Tile of the board.
     /// </summary>
-    public GameObject GetTile(int row, int collumn)
+    public TileHandler GetTile(int row, int collumn)
     {
 
         if (WithinBounds(row, collumn))
         {
             int pos = (row-1) * 8 + (collumn - 1) ;
-            return this.allTiles[pos];
+            return this.allTiles[pos].GetComponent<TileHandler>();
         }
         return null;       
     }
