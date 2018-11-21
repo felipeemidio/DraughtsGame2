@@ -37,7 +37,7 @@ public class KingPiece : Piece {
         possibleCaptureMovements.AddRange(downRight);
         possibleCaptureMovements.AddRange(downLeft);
 
-        Debug.Log(this.PrintMovements(possibleCaptureMovements));
+        //Debug.Log(this.PrintMovements(possibleCaptureMovements));
 
         return possibleCaptureMovements;
     }
@@ -53,7 +53,8 @@ public class KingPiece : Piece {
         int offsetY = 1;
         while(CanWalk(offsetX, offsetY))
         {
-            possibleWalkMovents.Add(new IntVector2(base.position.x + offsetX, base.position.y + offsetY));
+            possibleWalkMovents.Add( new Movement (base.position, 
+                new IntVector2(base.position.x + offsetX, base.position.y + offsetY)));
             offsetX++;
             offsetY++;
         }
@@ -62,7 +63,8 @@ public class KingPiece : Piece {
         offsetY = -1;
         while(CanWalk(offsetX, offsetY))
         {
-            possibleWalkMovents.Add(new IntVector2(base.position.x + offsetX, base.position.y + offsetY));
+            possibleWalkMovents.Add(new Movement(base.position,
+                new IntVector2(base.position.x + offsetX, base.position.y + offsetY)));
             offsetX++;
             offsetY--;
         }
@@ -71,7 +73,8 @@ public class KingPiece : Piece {
         offsetY = 1;
         while (CanWalk(offsetX, offsetY))
         {
-            possibleWalkMovents.Add(new IntVector2(base.position.x + offsetX, base.position.y + offsetY));
+            possibleWalkMovents.Add(new Movement(base.position,
+                new IntVector2(base.position.x + offsetX, base.position.y + offsetY)));
             offsetX--;
             offsetY++;
         }
@@ -80,7 +83,8 @@ public class KingPiece : Piece {
         offsetY = -1;
         while (CanWalk(offsetX, offsetY))
         {
-            possibleWalkMovents.Add(new IntVector2(base.position.x + offsetX, base.position.y + offsetY));
+            possibleWalkMovents.Add(new Movement(base.position,
+                new IntVector2(base.position.x + offsetX, base.position.y + offsetY)));
             offsetX--;
             offsetY--;
         }
@@ -153,28 +157,30 @@ public class KingPiece : Piece {
         // Search until find a tile that can capture.
         while (tile != null)
         {
-            Debug.Log("passing by " + tile.getPosition().ToString());
+            //Debug.Log("passing by " + tile.getPosition().ToString());
             
             // Once find a tile that can capture, add all tile position that a free in that direction.
             if (CanCapture(offsetX, offsetY, tile.getPosition()))
             {
+                Piece enemyPiece = base.board.GetTile(tile.getRow() + offsetX, tile.getColumn() + offsetY).
+                    transform.GetChild(0).GetComponent<Piece>();
                 tile = board.GetTile(tile.getRow() + 2 * offsetX, tile.getColumn() + 2 * offsetY)
                     .GetComponent<TileHandler>();
                 while (tile != null && tile.transform.childCount == 0)
                 {
-                    possibleMoves.Add(tile.getPosition());
+                    possibleMoves.Add(new Movement(base.position, tile.getPosition(), enemyPiece ));
                     tile = board.GetTile(tile.getRow() + offsetX, tile.getColumn() + offsetY);
                 }
                 break;
             }
 
-            Debug.Log("next is " + new IntVector2(tile.getRow() + offsetX, tile.getColumn() + offsetY).ToString() );
+            //Debug.Log("next is " + new IntVector2(tile.getRow() + offsetX, tile.getColumn() + offsetY).ToString() );
             tile = base.board.GetTile(tile.getRow() + offsetX, tile.getColumn() + offsetY);
 
             // Finish if find a piece with the same tag.
             if (tile != null && tile.transform.childCount > 0 && tile.transform.GetChild(0).CompareTag(this.tag))
             {
-                Debug.Log("break");
+                //Debug.Log("break");
                 break;
             }
         }
@@ -185,9 +191,9 @@ public class KingPiece : Piece {
     private string PrintMovements(ArrayList list)
     {
         string result = "Up left\n";
-        foreach (IntVector2 pos in list)
+        foreach (Movement move in list)
         {
-            result += pos.ToString() + " - ";
+            result += move.getDestinyPosition().ToString() + " - ";
         }
         result += "final.";
         return result;

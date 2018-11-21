@@ -155,7 +155,7 @@ public class Board : MonoBehaviour {
             return;
         }
 
-        //Internal Variables.
+        // Will be true if it's moving a piece.
         bool pieceMoved = false;
         // Set that this event was called.
         someTileClicked = true;
@@ -184,9 +184,9 @@ public class Board : MonoBehaviour {
                     canMove = currentPiece.GetWalkMovements();
                 }
                 // Change the color of the avaliable tiles.
-                foreach (IntVector2 e in canMove)
+                foreach (Movement e in canMove)
                 {
-                    GetTile((int)e.x, (int)e.y).GetComponent<Image>().color = possibiliteColor;
+                    GetTile(e.getDestinyPosition().x, e.getDestinyPosition().y).GetComponent<Image>().color = possibiliteColor;
                 }
             }
             
@@ -196,56 +196,34 @@ public class Board : MonoBehaviour {
         {
             pieceMoved = true;
             
-
-            IntVector2 tilePosition = new IntVector2(tile.getRow(), tile.getColumn() );
-            
-            if (canMove != null && this.Contain(canMove, tilePosition))
+            Movement choseMovement = this.GetMovementIfExists(canMove, tile.getPosition());
+            if (canMove != null && choseMovement != null)
             {
+                // Get the piece that will be captured if exists.
+                Piece pieceToBeCaptured = choseMovement.getCapturedPiece();
+
+                // It is a capture movement?
+                if ( pieceToBeCaptured != null)
+                {
+                    pieceToBeCaptured.Capture();
+                }
+
                 /*
                  * Change the piece's parent to the 'overlay' object
                  * because we want the piece above others sprites.
                  */
-                TileHandler currentTile = currentPiece.transform.parent.GetComponent<TileHandler>();
-                IntVector2 currentPosition = new IntVector2(currentTile.getRow(), currentTile.getColumn());
-
-                // It is a capture movement?
-                if ( Mathf.Abs(tilePosition.x - currentPosition.x) >= 2)
-                {
-                    int rowOffset = (int) tilePosition.x - (int)currentPosition.x ;
-                    int columnOffset = (int)tilePosition.y - (int)currentPosition.y;
-
-
-                    Debug.Log("row : " + rowOffset + " column : " + columnOffset);
-                    if (Mathf.Abs(rowOffset) >= 2 && Mathf.Abs(columnOffset) >= 2 )
-                    {
-                        // Get the tile of the enemy Piece
-                        rowOffset = rowOffset / Mathf.Abs(rowOffset);
-                        columnOffset = columnOffset / Mathf.Abs(columnOffset);
-
-                        TileHandler enemyTile =
-                            GetTile((int)currentPosition.x + rowOffset, (int)currentPosition.y + columnOffset)
-                            .GetComponent<TileHandler>();
-                        // Get the piece and mark as captured.
-                        if(enemyTile.transform.childCount > 0)
-                        {
-                            Piece enemyPiece = enemyTile.transform.GetChild(0).GetComponent<Piece>();
-                            enemyPiece.Capture();
-                        }
-                    }
-                }
-
                 currentPiece.transform.SetParent(overlay.transform, true);
+                
                 // Get this tile to reference it as a parent of the piece later.
                 targetTile = tile;
                 
                 state = State.doingMovement;
+                
                 //These are the parameters necessary to lerp the piece until the destiny.
                 timeStartedLerping = Time.time;
                 originPosition = currentPiece.transform.position;
                 destinyPosition = tile.transform.position;
             }
-
-            //ResetPossibleMovements();
         }
 
         DeselectTile();
@@ -277,9 +255,10 @@ public class Board : MonoBehaviour {
     {
         if (canMove != null)
         {
-            foreach (IntVector2 e in canMove)
+            foreach (Movement e in canMove)
             {
-                GetTile((int)e.x, (int)e.y).GetComponent<Image>().color = new Color(0.3113f, 0.3113f, 0.3113f);
+                GetTile(e.getDestinyPosition().x, e.getDestinyPosition().y).GetComponent<Image>().color = 
+                    new Color(0.3113f, 0.3113f, 0.3113f);
             }
         }
     }
@@ -363,17 +342,19 @@ public class Board : MonoBehaviour {
 
         Debug.Log(message);
     }
-
-    private bool Contain(ArrayList list, IntVector2 originalPos)
+    /// <summary>
+    /// Return a Movement if it exists within the list.
+    /// </summary>
+    private Movement GetMovementIfExists(ArrayList list, IntVector2 originalPos)
     {
-        foreach (IntVector2 pos in list)
+        foreach (Movement move in list)
         {
-            if(pos.x == originalPos.x && pos.y == originalPos.y)
+            if(move.getDestinyPosition().x == originalPos.x && move.getDestinyPosition().y == originalPos.y)
             {
-                return true;
+                return move;
             }
         }
-        return false;
+        return null;
     }
 
     /// <summary>

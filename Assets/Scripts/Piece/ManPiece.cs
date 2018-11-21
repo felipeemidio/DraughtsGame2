@@ -53,11 +53,11 @@ public class ManPiece : Piece {
         ArrayList possibleWalkMovents = new ArrayList();
         if (CanWalk(forward, 1))
         {
-            possibleWalkMovents.Add(new IntVector2(base.position.x + forward, base.position.y + 1));
+            possibleWalkMovents.Add(new Movement(base.position, new IntVector2(base.position.x + forward, base.position.y + 1)) );
         }
         if (CanWalk(forward, -1))
         {
-            possibleWalkMovents.Add(new IntVector2(base.position.x + forward, base.position.y - 1));
+            possibleWalkMovents.Add(new Movement(base.position, new IntVector2(base.position.x + forward, base.position.y - 1)));
         }
         return possibleWalkMovents;
     }
@@ -102,10 +102,10 @@ public class ManPiece : Piece {
     /// </summary>
     protected override bool CanWalk(int offsetX, int offsetY)
     {
-        if (base.board.WithinBounds((int)base.position.x + offsetX, (int)base.position.y + offsetY))
+        if (base.board.WithinBounds(base.position.x + offsetX, base.position.y + offsetY))
         {
 
-            TileHandler nextTile = base.board.GetTile((int)base.position.x + offsetX, (int)base.position.y + offsetY);
+            TileHandler nextTile = base.board.GetTile(base.position.x + offsetX, base.position.y + offsetY);
             // See if the nextTile is occupied.
             if (nextTile.transform.childCount == 0)
             {
@@ -151,7 +151,7 @@ public class ManPiece : Piece {
             if(list.Count > 0)
             {
                 Movement move = (Movement)list[0];
-                possibleMoves.Add(move.getDestinyPosition());
+                possibleMoves.Add(move);
             }
             
         }
