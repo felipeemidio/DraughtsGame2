@@ -4,16 +4,6 @@ using UnityEngine;
 
 public class KingPiece : Piece {
 
-    protected string enemy_tag;
-
-    protected ArrayList movementsTree;
-    protected int biggestDepth;
-
-    public override ArrayList GetBestSucessiveCapture()
-    {
-        return GetCaptureMovements( base.position, new ArrayList() ) ;
-    }
-
     /// <summary>
     /// Return a list of Movements that capture a piece given the current position.
     /// </summary>
@@ -23,14 +13,14 @@ public class KingPiece : Piece {
 
         // Get the possible move in each diagonal direction.
         
-        ArrayList upRight = SearchMovementInDirection(1, 1);
+        ArrayList upRight = SearchMovementInDirection(1, 1, currentPos, path);
 
-        ArrayList upLeft = SearchMovementInDirection(1, -1);
+        ArrayList upLeft = SearchMovementInDirection(1, -1, currentPos, path);
         
 
-        ArrayList downRight = SearchMovementInDirection(-1, 1);
+        ArrayList downRight = SearchMovementInDirection(-1, 1, currentPos, path);
 
-        ArrayList downLeft = SearchMovementInDirection(-1, -1);
+        ArrayList downLeft = SearchMovementInDirection(-1, -1, currentPos, path);
 
         possibleCaptureMovements.AddRange(upRight);
         possibleCaptureMovements.AddRange(upLeft);
@@ -132,10 +122,10 @@ public class KingPiece : Piece {
     /// </summary>
     protected override bool CanWalk(int offsetX, int offsetY)
     {
-        if (base.board.WithinBounds((int)base.position.x + offsetX, (int)base.position.y + offsetY))
+        if (base.board.WithinBounds(base.position.x + offsetX, base.position.y + offsetY))
         {
 
-            TileHandler nextTile = base.board.GetTile((int)base.position.x + offsetX, (int)base.position.y + offsetY);
+            TileHandler nextTile = base.board.GetTile(base.position.x + offsetX, base.position.y + offsetY);
             // See if the nextTile is occupied.
             if (nextTile.transform.childCount == 0)
             {
@@ -148,19 +138,18 @@ public class KingPiece : Piece {
     /// <summary>
     /// Get the possible move in a defined diagonal direction.
     /// </summary>
-    private ArrayList SearchMovementInDirection(int offsetX, int offsetY)
+    private ArrayList SearchMovementInDirection(int offsetX, int offsetY, IntVector2 currentPos, ArrayList path)
     {
         
         ArrayList possibleMoves = new ArrayList();
         // Get the currrent tile of this piece.
-        TileHandler tile = base.board.GetTile(base.position.x, base.position.y);
+        TileHandler tile = base.board.GetTile(currentPos.x, currentPos.y);
         // Search until find a tile that can capture.
         while (tile != null)
-        {
-            //Debug.Log("passing by " + tile.getPosition().ToString());
-            
+        {   
             // Once find a tile that can capture, add all tile position that a free in that direction.
-            if (CanCapture(offsetX, offsetY, tile.getPosition()))
+            if (CanCapture(offsetX, offsetY, tile.getPosition()) && 
+                !AlreadyCaptured(path, new IntVector2(tile.getRow() + offsetX, tile.getColumn() + offsetY)))
             {
                 Piece enemyPiece = base.board.GetTile(tile.getRow() + offsetX, tile.getColumn() + offsetY).
                     transform.GetChild(0).GetComponent<Piece>();
@@ -168,19 +157,18 @@ public class KingPiece : Piece {
                     .GetComponent<TileHandler>();
                 while (tile != null && tile.transform.childCount == 0)
                 {
-                    possibleMoves.Add(new Movement(base.position, tile.getPosition(), enemyPiece ));
+                    possibleMoves.Add(new Movement( currentPos, tile.getPosition(), enemyPiece ));
                     tile = board.GetTile(tile.getRow() + offsetX, tile.getColumn() + offsetY);
                 }
                 break;
             }
 
-            //Debug.Log("next is " + new IntVector2(tile.getRow() + offsetX, tile.getColumn() + offsetY).ToString() );
+            // Increment the current Tile.
             tile = base.board.GetTile(tile.getRow() + offsetX, tile.getColumn() + offsetY);
 
             // Finish if find a piece with the same tag.
-            if (tile != null && tile.transform.childCount > 0 && tile.transform.GetChild(0).CompareTag(this.tag))
+            if (tile != null && tile.transform.childCount > 0)
             {
-                //Debug.Log("break");
                 break;
             }
         }
@@ -188,14 +176,4 @@ public class KingPiece : Piece {
         return possibleMoves;
     }
 
-    private string PrintMovements(ArrayList list)
-    {
-        string result = "Up left\n";
-        foreach (Movement move in list)
-        {
-            result += move.getDestinyPosition().ToString() + " - ";
-        }
-        result += "final.";
-        return result;
-    }
 }

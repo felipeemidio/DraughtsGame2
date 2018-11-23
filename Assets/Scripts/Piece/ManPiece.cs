@@ -4,13 +4,8 @@ using UnityEngine;
 
 public class ManPiece : Piece {
     
-    protected string enemy_tag;
     protected int forward;
     protected string kingVersionPath;
-
-    protected ArrayList movementsTree;
-    protected int biggestDepth;
-
     
     /// <summary>
     /// Return a list of Movements given the current position.
@@ -19,25 +14,25 @@ public class ManPiece : Piece {
     {
         ArrayList possibleCaptureMovents = new ArrayList();
 
-        if (CanCapture(1, 1, currentPos) && !AlreadyCaptured(path, new IntVector2(currentPos.x + 1, currentPos.y + 1)))
+        if (CanCapture(1, 1, currentPos) && !base.AlreadyCaptured(path, new IntVector2(currentPos.x + 1, currentPos.y + 1)))
         {
             possibleCaptureMovents.Add(new Movement(currentPos,
                 new IntVector2(currentPos.x + 2, currentPos.y + 2),
                 base.board.GetTile(currentPos.x + 1, currentPos.y + 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
         }
-        if (CanCapture(1, -1, currentPos) && !AlreadyCaptured(path, new IntVector2(currentPos.x + 1, currentPos.y - 1)))
+        if (CanCapture(1, -1, currentPos) && !base.AlreadyCaptured(path, new IntVector2(currentPos.x + 1, currentPos.y - 1)))
         {
             possibleCaptureMovents.Add(new Movement(currentPos,
                 new IntVector2(currentPos.x + 2, currentPos.y - 2),
                 base.board.GetTile(currentPos.x + 1, currentPos.y - 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
         }
-        if (CanCapture(-1, 1, currentPos) && !AlreadyCaptured(path, new IntVector2(currentPos.x - 1, currentPos.y + 1)))
+        if (CanCapture(-1, 1, currentPos) && !base.AlreadyCaptured(path, new IntVector2(currentPos.x - 1, currentPos.y + 1)))
         {
             possibleCaptureMovents.Add(new Movement(currentPos,
                 new IntVector2(currentPos.x - 2, currentPos.y + 2),
                 base.board.GetTile(currentPos.x - 1, currentPos.y + 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
         }
-        if (CanCapture(-1, -1, currentPos) && !AlreadyCaptured(path, new IntVector2(currentPos.x - 1, currentPos.y - 1)))
+        if (CanCapture(-1, -1, currentPos) && !base.AlreadyCaptured(path, new IntVector2(currentPos.x - 1, currentPos.y - 1)))
         {
             possibleCaptureMovents.Add(new Movement(currentPos,
                 new IntVector2(currentPos.x - 2, currentPos.y - 2),
@@ -117,125 +112,10 @@ public class ManPiece : Piece {
         return false;
     }
 
-    /// <summary>
-    /// Return a matrix with the best moves considering the Majority Law.
-    /// </summary>
-    /// <remarks>
-    /// ---MAJORITY LAW---
-    ///  If more than one capture mode is shown in the
-    ///  same move, it is mandatory to execute the movement
-    ///  that captures the largest number of pieces.
-    /// </remarks>
-    public override ArrayList GetBestSucessiveCapture()
-    {
-        // Prepare the variables to contruct a tree.
-        this.movementsTree = new ArrayList();
-        this.biggestDepth = 0;
-        ArrayList path = new ArrayList();
-        // Retire the current piece of the board.
-        Transform originalParent = transform.parent;
-        Transform overlay = GameObject.FindGameObjectWithTag("OverLay").transform;
-        transform.SetParent(overlay);
-
-        // Contruct a tree recursively.
-        ContructTree(base.position, path , 0);
-
-        // Put the current piece back to the board.
-        transform.SetParent(originalParent);
-
-        // Get just the moves with the majority law.
-        ArrayList bestWays = ApplyMajorityLaw(movementsTree);
-
-        // Get the first moves of each of the best sequences.
-        ArrayList possibleMoves = new ArrayList();
-        foreach (ArrayList list in bestWays)
-        {
-            if(list.Count > 0)
-            {
-                Movement move = (Movement)list[0];
-                possibleMoves.Add(move);
-            }
-            
-        }
-
-        return possibleMoves;
-    }
 
     /// <summary>
-    /// Greed Recursive method that return all sequence of capture movements.
-    /// Also sets the biggestDepth variable.
+    /// Create a new king Piece and replace this one.
     /// </summary>
-    public void ContructTree(IntVector2 currentPos, ArrayList path, int depth)
-    {
-        ArrayList possibleMoves = GetCaptureMovements(currentPos, path);
-
-        // Stop when reach the leafs.
-        if (possibleMoves.Count == 0 )
-        {
-            movementsTree.Add(path.Clone());
-            if(this.biggestDepth < depth)
-            {
-                this.biggestDepth = depth;
-            }
-            return;
-        }
-        foreach (Movement move in possibleMoves)
-        {
-            path.Add(move);
-            ContructTree(move.getDestinyPosition(), path, depth+1);
-            path.Remove(move);
-        }
-
-    }
-
-    /**
-     * Given a matrix of Movements, return the longest ones.
-     */
-    private ArrayList ApplyMajorityLaw( ArrayList matrix)
-    {
-
-        ArrayList result = new ArrayList();
-        foreach (ArrayList list in matrix)
-        {
-            if (list.Count == this.biggestDepth)
-            {
-                result.Add(list);
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Compare to see if a enemy already was captured based in it's position.
-     */
-    private bool AlreadyCaptured(ArrayList path, IntVector2 enemyPos)
-    {
-        foreach( Movement move in path)
-        {
-            PrintMovements(path);
-            IntVector2 movePiecePosition = move.getCapturedPiece().GetPosition();
-            if (move.hasCapturedAnEnemy() && movePiecePosition.x == enemyPos.x && movePiecePosition.y == enemyPos.y)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Print a list o Movements.
-     */
-    private void PrintMovements(ArrayList list)
-    {
-        string message = "Movements - ";
-        foreach (Movement item in list)
-        {
-            message += "(" + item.ToString() + ")\n";
-        }
-        Debug.Log(message);
-    }
-
     public void Promote()
     {
         // Find the respective promotion line.
@@ -244,8 +124,7 @@ public class ManPiece : Piece {
         {
             promotionLine = 8;
         }
-        
-        
+         
         if(base.position.x == promotionLine)
         {
             // Create a new King Piece and set it in the same position as this.

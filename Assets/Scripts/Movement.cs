@@ -60,7 +60,7 @@ public class Movement {
         string result = "from " + originalPosition.ToString() + " to " + destinyPosition.ToString();
         if (hasCapturedAnEnemy())
         {
-            result += " Capturing";
+            result += " Capturing in " + this.capturedPiece.GetPosition().ToString();
         }
 
         return result;
