@@ -64,29 +64,7 @@ public class Board : MonoBehaviour {
 
     void Start()
     {
-        // Get all player pieces.
-        allPlayerPieces = new ArrayList();
-        GameObject[] allPiecesObjects = GameObject.FindGameObjectsWithTag("BluePiece");
-        foreach (GameObject pieceObject in allPiecesObjects)
-        {
-            if(pieceObject.GetComponent<PlayerManPiece>() != null)
-            {
-                allPlayerPieces.Add(pieceObject.GetComponent<PlayerManPiece>());
-            }
-            else
-            {
-                allPlayerPieces.Add(pieceObject.GetComponent<PlayerKingPiece>());
-            }
-            
-        }
-
-        // Get all player pieces.
-        allEnemyPieces = new ArrayList();
-        allPiecesObjects = GameObject.FindGameObjectsWithTag("WhitePiece");
-        foreach (GameObject pieceObject in allPiecesObjects)
-        {
-            allEnemyPieces.Add(pieceObject.GetComponent<EnemyManPiece>());
-        }
+        this.RefreshAllPieces();
     }
 
     void Update()
@@ -106,10 +84,15 @@ public class Board : MonoBehaviour {
                 currentPiece.transform.SetParent(targetTile.transform, true);
                 currentPiece.SetCurrentPosition();
 
+                // Try to promote
+                ManPiece currentManPiece = currentPiece.GetComponent<ManPiece>();
+                if (currentManPiece != null)
+                    currentManPiece.Promote();
+
                 // See if its possible a sucessiveMovement.
                 if(currentPiece.GetCaptureMovements().Count > 0)
                 {
-                    Debug.Log("sucessiveCapture");
+                    //Debug.Log("sucessiveCapture");
                     pieceWithinSucessiveCapture = currentPiece;
                 }
                 else
@@ -149,6 +132,7 @@ public class Board : MonoBehaviour {
     public void TileClicked(TileHandler tile, int row, int collumn)
     {
         ResetPossibleMovements();
+        
         // Do nothing if a piece is already moving.
         if (state == State.doingMovement || !gameController.isPlayerTurn())
         {
@@ -178,7 +162,6 @@ public class Board : MonoBehaviour {
 
                 // Get Possible moves that piece can make.
                 canMove = currentPiece.GetBestSucessiveCapture();
-                Debug.Log(canMove.Count);
                 if (canMove.Count == 0 && !someCanCapture)
                 {
                     canMove = currentPiece.GetWalkMovements();
@@ -287,6 +270,7 @@ public class Board : MonoBehaviour {
      */
     public void DestroyCapturedPieces()
     {
+        this.RefreshAllPieces();
         ArrayList destroyedPieces = new ArrayList();
         foreach (EnemyManPiece piece in allEnemyPieces)
         {
@@ -316,6 +300,35 @@ public class Board : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Refresh the active pieces in the board.
+    /// </summary>
+    public void RefreshAllPieces()
+    {
+        // Get all player pieces.
+        allPlayerPieces = new ArrayList();
+        GameObject[] allPiecesObjects = GameObject.FindGameObjectsWithTag("BluePiece");
+        foreach (GameObject pieceObject in allPiecesObjects)
+        {
+            if (pieceObject.GetComponent<PlayerManPiece>() != null)
+            {
+                allPlayerPieces.Add(pieceObject.GetComponent<PlayerManPiece>());
+            }
+            else
+            {
+                allPlayerPieces.Add(pieceObject.GetComponent<PlayerKingPiece>());
+            }
+        }
+
+        // Get all player pieces.
+        allEnemyPieces = new ArrayList();
+        allPiecesObjects = GameObject.FindGameObjectsWithTag("WhitePiece");
+        foreach (GameObject pieceObject in allPiecesObjects)
+        {
+            allEnemyPieces.Add(pieceObject.GetComponent<EnemyManPiece>());
+        }
+    }
+
     private string PrintMovements(ArrayList list)
     {
         string result = "";
@@ -327,7 +340,7 @@ public class Board : MonoBehaviour {
         return result;
     }
 
-    private void printTree(ArrayList matrix)
+    private void PrintTree(ArrayList matrix)
     {
         string message = "";
         foreach (ArrayList list in matrix)

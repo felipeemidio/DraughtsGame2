@@ -11,8 +11,8 @@ abstract public class Piece : MonoBehaviour {
 
     public virtual void Start()
     {
-        this.SetCurrentPosition();
         board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
+        this.SetCurrentPosition();
     }
 
     /// <summary>
@@ -26,11 +26,11 @@ abstract public class Piece : MonoBehaviour {
         this.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.7f);
     }
 
-    
+
     /// <summary>
     ///  Set the current position of the piece in the board by the parent tile.
     /// </summary>
-    public bool SetCurrentPosition()
+    public virtual bool SetCurrentPosition()
     {
         // Get current position.
         TileHandler parentTile = transform.parent.GetComponent<TileHandler>();

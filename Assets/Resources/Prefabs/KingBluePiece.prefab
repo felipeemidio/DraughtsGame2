@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 224485160514926808}
   - component: {fileID: 222091549274760918}
   - component: {fileID: 114945363191060166}
-  - component: {fileID: 114999534436224822}
+  - component: {fileID: 114516045450330736}
   m_Layer: 5
   m_Name: KingBluePiece
   m_TagString: BluePiece
@@ -29,6 +29,17 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &114516045450330736
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1868337594538068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f2ff6270ccdd514b8cd7f61a410db9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114945363191060166
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -56,17 +67,6 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
---- !u!114 &114999534436224822
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1868337594538068}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f2ff6270ccdd514b8cd7f61a410db9b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!222 &222091549274760918
 CanvasRenderer:
   m_ObjectHideFlags: 1

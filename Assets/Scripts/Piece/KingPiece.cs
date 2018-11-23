@@ -23,14 +23,14 @@ public class KingPiece : Piece {
 
         // Get the possible move in each diagonal direction.
         
-        ArrayList upRight = searchMovementInDirection(1, 1);
+        ArrayList upRight = SearchMovementInDirection(1, 1);
 
-        ArrayList upLeft = searchMovementInDirection(1, -1);
+        ArrayList upLeft = SearchMovementInDirection(1, -1);
         
 
-        ArrayList downRight = searchMovementInDirection(-1, 1);
+        ArrayList downRight = SearchMovementInDirection(-1, 1);
 
-        ArrayList downLeft = searchMovementInDirection(-1, -1);
+        ArrayList downLeft = SearchMovementInDirection(-1, -1);
 
         possibleCaptureMovements.AddRange(upRight);
         possibleCaptureMovements.AddRange(upLeft);
@@ -148,7 +148,7 @@ public class KingPiece : Piece {
     /// <summary>
     /// Get the possible move in a defined diagonal direction.
     /// </summary>
-    private ArrayList searchMovementInDirection(int offsetX, int offsetY)
+    private ArrayList SearchMovementInDirection(int offsetX, int offsetY)
     {
         
         ArrayList possibleMoves = new ArrayList();
