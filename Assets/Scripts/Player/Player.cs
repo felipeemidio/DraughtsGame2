@@ -2,54 +2,55 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player {
+public class Player : AbstractPlayer {
 
-    private Board board;
     private Piece currentPiece = null;
     private ArrayList canMoveTo = null;
     private bool somePieceCanCapture = false;
     private bool isCapturing = false;
-    private GameController gameController;
     private bool isSucessiveCapture = false;
 
     public Player ()
     {
-        this.board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
-        this.gameController = GameObject.FindGameObjectWithTag("GameController")
+        base.board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
+        base.gameController = GameObject.FindGameObjectWithTag("GameController")
             .GetComponent<GameController>();
     }
 
-    public void Play ()
+    /// <summary>
+    /// Sign the start of that player's turn.
+    /// </summary>
+    public override void Play ()
     {
-        somePieceCanCapture = this.board.SomePieceCanCapture();
+        somePieceCanCapture = base.SomePieceCanCapture(base.board.GetPlayerPieces());
     }
 
     public void SelectionHandler (TileHandler tile)
     {
-        this.board.ResetPossibleMovements(canMoveTo);
+        base.board.ResetPossibleMovements(canMoveTo);
         bool hasPiece = tile.HasChild();  
         // In case the player want to move a piece.
-        if (currentPiece != null && !isSucessiveCapture && !hasPiece)
+        if (currentPiece != null && !hasPiece)
         {
             // If that tile is in the 'canMoveTo', then move the current piece.
             Movement movement = GetMovementIfExists (canMoveTo, tile.getPosition());
             if (movement != null)
             {
-                this.board.MovePiece (movement, this);
+                base.board.MovePiece (movement);
             }    
         }
-        // In case the player are in a sucessive capture.
+        // In case the player try to select a piece in a sucessive capture.
         else if (currentPiece != null && isSucessiveCapture && hasPiece)
         {
             // If the movement is a sucessive movement, then that piece is the only playable.
             if (currentPiece == tile.GetChild().GetComponent<Piece>())
             {
                 // Paints select piece's tile and the avaliable tiles to move.
-                this.board.SelectPiece(currentPiece, canMoveTo);
+                base.board.SelectPiece(currentPiece, canMoveTo);
             }
             else
             {
-                this.board.SelectPiece(tile.GetChild().GetComponent<Piece>(), new ArrayList());
+                base.board.SelectPiece(tile.GetChild().GetComponent<Piece>(), new ArrayList());
             }
         }
         // In case the player select a new piece.
@@ -71,7 +72,7 @@ public class Player {
                 isCapturing = true;
             }
             // Paints select piece's tile and the avaliable tiles to move.
-            this.board.SelectPiece (currentPiece, canMoveTo);   
+            base.board.SelectPiece (currentPiece, canMoveTo);   
         }
     }
 
@@ -96,9 +97,9 @@ public class Player {
     }
 
     /// <summary>
-    /// This method should be called when the board finish doing a move for the player.
+    /// It's called when the movement chose by this player is finished.
     /// </summary>
-    public void NotifyEndOfMovement ()
+    public override void NotifyEndOfMovement ()
     {
         // See if the piececan capture again.
         if (isCapturing)
@@ -107,16 +108,22 @@ public class Player {
             if (canMoveTo.Count != 0)
             {
                 isSucessiveCapture = true;
-                this.board.DeselectTile();
+                base.board.DeselectTiles();
                 return;
             }
         }
+
+        // Try to promote
+        ManPiece currentManPiece = currentPiece.GetComponent<ManPiece>();
+        if (currentManPiece != null)
+            currentManPiece.Promote();
 
         // Reset state and call the next turn.
         isSucessiveCapture = false;
         currentPiece = null;
         canMoveTo = null;
-        this.board.DeselectTile();
+        base.board.DeselectTiles();
+        base.board.DestroyCapturedPieces();
         this.gameController.NextTurn();
     }
 }

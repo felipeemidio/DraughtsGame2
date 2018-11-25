@@ -26,7 +26,7 @@ public class Board : MonoBehaviour {
     public float timeTakenDuringLerp = 0.1f;
 
     // Private Variables.
-    private bool someTileClicked;
+    private bool tileClickedCalled = false;
 
     private float timeStartedLerping;
     private Vector3 originPosition;
@@ -37,23 +37,17 @@ public class Board : MonoBehaviour {
     private GameObject overlay;
     private TileHandler targetTile;
     private GameController gameController;
-    private ArrayList canMove = null;
     private ArrayList allPlayerPieces;
     private ArrayList allEnemyPieces;
-    private bool someCanCapture = false;
 
     Piece pieceToMove = null;
-    Player playerWaiting = null;
     private ArrayList paintedPositions = null;
-
-    private Piece pieceWithinSucessiveCapture = null;
 
 
     void Awake()
     {
         // Set variables.
         state = State.waitingMovement;
-        someTileClicked = false;
         //currentPiece = null;
         gameController = 
             GameObject.FindGameObjectWithTag("GameController").GetComponent<GameController>();
@@ -82,57 +76,31 @@ public class Board : MonoBehaviour {
 
             if (percentageComplete >= 1.0f)
             {
-                string message = "Movement Complete\n";
-                message += pieceToMove.GetPosition().ToString() + " para " +
-                    targetTile.getPosition();
-
-                Debug.Log(message );
-
                 // Set the new position of the piece
                 pieceToMove.transform.SetParent(targetTile.transform, true);
                 pieceToMove.SetCurrentPosition();
 
-                
-                // Try to promote
-                ManPiece currentManPiece = pieceToMove.GetComponent<ManPiece>();
-                if (currentManPiece != null)
-                    currentManPiece.Promote();
-                
-                
-                Debug.Log("state Waiting");
                 state = State.waitingMovement;
 
-                // See if its possible a sucessiveMovement.
-                if (pieceToMove.GetCaptureMovements().Count > 0)
-                {
-                    //Debug.Log("sucessiveCapture");
-                    pieceWithinSucessiveCapture = pieceToMove;
-                }
-                else
-                {
-                    pieceWithinSucessiveCapture = null;
-                    pieceToMove = null;
-                    gameController.NextTurn();
-                }
-
+                // Send a message to player saying that the piece finish to move.
+                gameController.NotifyPlayerEndOfMovement();
             }
         }
+        // Get mouse clicks
         else
         {
-            bool isPlayerTurn = gameController.isPlayerTurn();
             // Get right mouse's button click.
             if (Input.GetMouseButtonUp(0) && state != State.doingMovement
-                && isPlayerTurn)
+                && gameController.isPlayerTurn())
             {
                 // Deselect when clicked out of the table.
-                if (someTileClicked)
+                if (tileClickedCalled)
                 {
-                    someTileClicked = false;
+                    tileClickedCalled = false;
                 }
                 else
                 {
-                    DeselectTile();
-                    //ResetPossibleMovements();
+                    DeselectTiles();
                 }
             }   
         }
@@ -143,61 +111,19 @@ public class Board : MonoBehaviour {
      */
     public void TileClicked(TileHandler tile)
     {
-        DeselectTile();
-        //ResetPossibleMovements();
+        // Set that this event was called.
+        this.tileClickedCalled = true;
+        // Remove selections.
+        this.DeselectTiles();
 
         // Do nothing if a piece is already moving.
-        if (state == State.doingMovement || !gameController.isPlayerTurn())
+        if (state == State.doingMovement || !this.gameController.isPlayerTurn())
         {
             return;
         }
-        // Set that this event was called.
-        someTileClicked = true;
-        /*
-        // Select a piece and change the color of the possible tiles of a chosen piece.
-        if (tile.transform.childCount > 0 && tile.transform.GetChild(0).CompareTag("BluePiece"))
-        {
-
-            // Set the chosen piece as the current one.
-            currentPiece = tile.transform.GetChild(0).gameObject.GetComponent<PlayerManPiece>();
-            if(currentPiece == null)
-            {
-                currentPiece = tile.transform.GetChild(0).gameObject.GetComponent<PlayerKingPiece>();
-            }
-
-            if( (pieceWithinSucessiveCapture != null && pieceWithinSucessiveCapture == currentPiece)
-                || pieceWithinSucessiveCapture == null)
-            {
-                //printTree(currentPiece.GetBestSucessiveCapture());
-                Debug.Log("can Move: " + PrintMovements(canMove));
-                // Get Possible moves that piece can make.
-                canMove = currentPiece.GetBestSucessiveCapture();
-                if (canMove.Count == 0 && !someCanCapture)
-                {
-                    canMove = currentPiece.GetWalkMovements();
-                }
-                // Change the color of the avaliable tiles.
-                foreach (Movement e in canMove)
-                {
-                    GetTile(e.getDestinyPosition().x, e.getDestinyPosition().y).GetComponent<Image>().color = possibiliteColor;
-                }
-            }
-            
-        }
-        // See if is to move a piece.
-        else if (currentPiece != null && tile.transform.childCount == 0)
-        {
-            pieceMoved = true;
-            
-            Movement choseMovement = this.GetMovementIfExists(canMove, tile.getPosition());
-            if (choseMovement != null)
-            {
-                MovePiece (choseMovement, null);
-            }
-        }
-        */
-
-        gameController.SendToPlayer(tile);
+        
+        // Send the tile to the player decide whats he going to do.
+        this.gameController.SendToPlayer(tile);
         
     }
 
@@ -217,7 +143,7 @@ public class Board : MonoBehaviour {
         }
     }
 
-    public void DeselectTile()
+    public void DeselectTiles()
     {
         // Deselect a tile if already selected;
         if (paintedPositions != null)
@@ -230,12 +156,10 @@ public class Board : MonoBehaviour {
         }
     }
 
-    public void MovePiece( Movement move, Player player )
+    public void MovePiece( Movement move )
     {
         pieceToMove = this.GetTile (move.getOriginalPosition())
             .transform.GetChild(0).GetComponent<Piece>();
-
-        Debug.Log("piece moving " + pieceToMove.GetPosition().ToString());
 
         // Get the piece that will be captured if exists.
         Piece pieceToBeCaptured = move.getCapturedPiece();
@@ -260,9 +184,7 @@ public class Board : MonoBehaviour {
         originPosition = pieceToMove.transform.position;
         destinyPosition = targetTile.transform.position;
 
-        playerWaiting = player;
         state = State.doingMovement;
-        Debug.Log("state Moving");
     }
 
     /**
@@ -291,11 +213,9 @@ public class Board : MonoBehaviour {
             captureMovements = piece.GetCaptureMovements();
             if (captureMovements.Count != 0)
             {
-                someCanCapture = true;
                 return true;
             }
         }
-        someCanCapture = false;
         return false;
     }
 
@@ -304,7 +224,6 @@ public class Board : MonoBehaviour {
      */
     public void DestroyCapturedPieces()
     {
-        this.RefreshAllPieces();
         ArrayList destroyedPieces = new ArrayList();
         foreach (EnemyManPiece piece in allEnemyPieces)
         {
@@ -344,6 +263,9 @@ public class Board : MonoBehaviour {
         GameObject[] allPiecesObjects = GameObject.FindGameObjectsWithTag("BluePiece");
         foreach (GameObject pieceObject in allPiecesObjects)
         {
+            if (pieceObject.GetComponent<Piece>().HasBeenCaptured())
+                continue;
+
             if (pieceObject.GetComponent<PlayerManPiece>() != null)
             {
                 allPlayerPieces.Add(pieceObject.GetComponent<PlayerManPiece>());
@@ -359,7 +281,8 @@ public class Board : MonoBehaviour {
         allPiecesObjects = GameObject.FindGameObjectsWithTag("WhitePiece");
         foreach (GameObject pieceObject in allPiecesObjects)
         {
-            allEnemyPieces.Add(pieceObject.GetComponent<EnemyManPiece>());
+            if (!pieceObject.GetComponent<Piece>().HasBeenCaptured())
+                allEnemyPieces.Add(pieceObject.GetComponent<EnemyManPiece>());
         }
     }
 

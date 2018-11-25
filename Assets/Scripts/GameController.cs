@@ -48,12 +48,12 @@ public class GameController : MonoBehaviour {
      */
     public void NextTurn()
     {
+        board.RefreshAllPieces();
         if (turn == Turn.playerTurn)
         {
             turn = Turn.enemyTurn;
             turnText.text = "ENEMY'S TURN";
-            //bot.Play();
-            board.RefreshAllPieces();
+            bot.Play();
 
         }
         else
@@ -63,13 +63,23 @@ public class GameController : MonoBehaviour {
             board.SomePieceCanCapture();
             player.Play();
         }
-
-        board.DestroyCapturedPieces();
     }
 
     public void SendToPlayer(TileHandler tile)
     {
         player.SelectionHandler(tile);
+    }
+
+    public void NotifyPlayerEndOfMovement()
+    {
+        if(turn == Turn.playerTurn) {
+            player.NotifyEndOfMovement();
+        }
+        else
+        {
+            bot.NotifyEndOfMovement();
+        }
+        
     }
 
     /*

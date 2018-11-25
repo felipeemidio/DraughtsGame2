@@ -2,24 +2,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Bot {
-
-    Board board;
+public class Bot : AbstractPlayer {
 
     /**
-     * Constructor
+     * CONSTRUCTOR
      */
-	public Bot ()
+    public Bot ()
     {
-        this.board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
+        base.board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
+        base.gameController = GameObject.FindGameObjectWithTag("GameController")
+            .GetComponent<GameController>();
     }
 
-    public void Play()
+    /// <summary>
+    /// Sign the start of that player's turn.
+    /// </summary>
+    public override void Play()
     {
         Debug.Log ("BOT Playing");
+
         Movement choseMove = ChooseOneMovement();
         Debug.Log(choseMove.ToString());
-        //this.board.MovePiece (choseMove);
+        base.board.MovePiece (choseMove);
     }
 
     /**
@@ -27,12 +31,10 @@ public class Bot {
      */
     public Movement ChooseOneMovement ()
     {
-        this.board.RefreshAllPieces();
-        ArrayList botPieces = this.board.GetEnemyPieces();
-
+        ArrayList botPieces = base.board.GetEnemyPieces();
         ArrayList possibleMoves = new ArrayList();
 
-        if (this.SomePieceCanCapture (botPieces))
+        if (base.SomePieceCanCapture (botPieces))
         {
             foreach (Piece piece in botPieces)
             {
@@ -48,26 +50,15 @@ public class Bot {
         }
 
         int randomNumber = Random.Range(0, possibleMoves.Count);
-
         return (Movement) possibleMoves[randomNumber];
-        
-
     }
 
-    /**
-     * Verify if some piece can capture a enemy's piece.
-     */
-    private bool SomePieceCanCapture(ArrayList piecesList)
+    /// <summary>
+    /// It's called when the movement chose by this player is finished.
+    /// </summary>
+    public override void NotifyEndOfMovement()
     {
-        ArrayList captureMovements;
-        foreach (Piece piece in piecesList)
-        {
-            captureMovements = piece.GetCaptureMovements();
-            if (captureMovements.Count != 0)
-            {
-                return true;
-            }
-        }
-        return false;
+        base.board.DestroyCapturedPieces();
+        this.gameController.NextTurn();
     }
 }
