@@ -13,6 +13,8 @@ public class GameController : MonoBehaviour {
 
     private Turn turn;
     private Board board;
+    private Bot bot;
+    private Player player;
 
     /*
      * Initialize variables.
@@ -20,7 +22,8 @@ public class GameController : MonoBehaviour {
     void Start()
     {
         board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board> ();
-
+        bot = new Bot();
+        player = new Player();
         turn = Turn.enemyTurn;
         this.NextTurn();
         if (turnText == null)
@@ -49,15 +52,24 @@ public class GameController : MonoBehaviour {
         {
             turn = Turn.enemyTurn;
             turnText.text = "ENEMY'S TURN";
+            //bot.Play();
+            board.RefreshAllPieces();
+
         }
         else
         {
             turn = Turn.playerTurn;
             turnText.text = "YOUR TURN";
             board.SomePieceCanCapture();
+            player.Play();
         }
 
         board.DestroyCapturedPieces();
+    }
+
+    public void SendToPlayer(TileHandler tile)
+    {
+        player.SelectionHandler(tile);
     }
 
     /*

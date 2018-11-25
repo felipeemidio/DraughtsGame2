@@ -19,6 +19,7 @@ public class Board : MonoBehaviour {
     // Public Variables.
     public Color selectionColor;
     public Color possibiliteColor;
+    public Color blackTileColor;
     public List<GameObject> allTiles;
     public float speed = 5f;
 
@@ -26,14 +27,12 @@ public class Board : MonoBehaviour {
 
     // Private Variables.
     private bool someTileClicked;
-    private TileHandler lastTileClicked;
-    private Color colorLastTileClicked;
 
     private float timeStartedLerping;
     private Vector3 originPosition;
     private Vector3 destinyPosition;
 
-    private Piece currentPiece;
+    //private Piece currentPiece;
     // Use this to put to the piece overlay other sprites.
     private GameObject overlay;
     private TileHandler targetTile;
@@ -43,6 +42,10 @@ public class Board : MonoBehaviour {
     private ArrayList allEnemyPieces;
     private bool someCanCapture = false;
 
+    Piece pieceToMove = null;
+    Player playerWaiting = null;
+    private ArrayList paintedPositions = null;
+
     private Piece pieceWithinSucessiveCapture = null;
 
 
@@ -51,8 +54,7 @@ public class Board : MonoBehaviour {
         // Set variables.
         state = State.waitingMovement;
         someTileClicked = false;
-        lastTileClicked = null;
-        currentPiece = null;
+        //currentPiece = null;
         gameController = 
             GameObject.FindGameObjectWithTag("GameController").GetComponent<GameController>();
         overlay = GameObject.FindGameObjectWithTag("OverLay");
@@ -75,34 +77,44 @@ public class Board : MonoBehaviour {
         {
             float timeSinceStarted = (Time.time - timeStartedLerping) * speed;
             float percentageComplete = timeSinceStarted / timeTakenDuringLerp;
-            currentPiece.transform.position = Vector3.Lerp(originPosition,
+            pieceToMove.transform.position = Vector3.Lerp(originPosition,
                 destinyPosition, percentageComplete);
 
             if (percentageComplete >= 1.0f)
             {
-                // Set the new position of the piece
-                currentPiece.transform.SetParent(targetTile.transform, true);
-                currentPiece.SetCurrentPosition();
+                string message = "Movement Complete\n";
+                message += pieceToMove.GetPosition().ToString() + " para " +
+                    targetTile.getPosition();
 
+                Debug.Log(message );
+
+                // Set the new position of the piece
+                pieceToMove.transform.SetParent(targetTile.transform, true);
+                pieceToMove.SetCurrentPosition();
+
+                
                 // Try to promote
-                ManPiece currentManPiece = currentPiece.GetComponent<ManPiece>();
+                ManPiece currentManPiece = pieceToMove.GetComponent<ManPiece>();
                 if (currentManPiece != null)
                     currentManPiece.Promote();
+                
+                
+                Debug.Log("state Waiting");
+                state = State.waitingMovement;
 
                 // See if its possible a sucessiveMovement.
-                if(currentPiece.GetCaptureMovements().Count > 0)
+                if (pieceToMove.GetCaptureMovements().Count > 0)
                 {
                     //Debug.Log("sucessiveCapture");
-                    pieceWithinSucessiveCapture = currentPiece;
+                    pieceWithinSucessiveCapture = pieceToMove;
                 }
                 else
                 {
                     pieceWithinSucessiveCapture = null;
+                    pieceToMove = null;
                     gameController.NextTurn();
                 }
-                
-                currentPiece = null;
-                state = State.waitingMovement;
+
             }
         }
         else
@@ -120,7 +132,7 @@ public class Board : MonoBehaviour {
                 else
                 {
                     DeselectTile();
-                    ResetPossibleMovements();
+                    //ResetPossibleMovements();
                 }
             }   
         }
@@ -129,21 +141,19 @@ public class Board : MonoBehaviour {
     /**
      * If a tiled is clicked this function is called. 
      */
-    public void TileClicked(TileHandler tile, int row, int collumn)
+    public void TileClicked(TileHandler tile)
     {
-        ResetPossibleMovements();
-        
+        DeselectTile();
+        //ResetPossibleMovements();
+
         // Do nothing if a piece is already moving.
         if (state == State.doingMovement || !gameController.isPlayerTurn())
         {
             return;
         }
-
-        // Will be true if it's moving a piece.
-        bool pieceMoved = false;
         // Set that this event was called.
         someTileClicked = true;
-
+        /*
         // Select a piece and change the color of the possible tiles of a chosen piece.
         if (tile.transform.childCount > 0 && tile.transform.GetChild(0).CompareTag("BluePiece"))
         {
@@ -159,7 +169,7 @@ public class Board : MonoBehaviour {
                 || pieceWithinSucessiveCapture == null)
             {
                 //printTree(currentPiece.GetBestSucessiveCapture());
-
+                Debug.Log("can Move: " + PrintMovements(canMove));
                 // Get Possible moves that piece can make.
                 canMove = currentPiece.GetBestSucessiveCapture();
                 if (canMove.Count == 0 && !someCanCapture)
@@ -180,68 +190,92 @@ public class Board : MonoBehaviour {
             pieceMoved = true;
             
             Movement choseMovement = this.GetMovementIfExists(canMove, tile.getPosition());
-            if (canMove != null && choseMovement != null)
+            if (choseMovement != null)
             {
-                // Get the piece that will be captured if exists.
-                Piece pieceToBeCaptured = choseMovement.getCapturedPiece();
-
-                // It is a capture movement?
-                if ( pieceToBeCaptured != null)
-                {
-                    pieceToBeCaptured.Capture();
-                }
-
-                /*
-                 * Change the piece's parent to the 'overlay' object
-                 * because we want the piece above others sprites.
-                 */
-                currentPiece.transform.SetParent(overlay.transform, true);
-                
-                // Get this tile to reference it as a parent of the piece later.
-                targetTile = tile;
-                
-                state = State.doingMovement;
-                
-                //These are the parameters necessary to lerp the piece until the destiny.
-                timeStartedLerping = Time.time;
-                originPosition = currentPiece.transform.position;
-                destinyPosition = tile.transform.position;
+                MovePiece (choseMovement, null);
             }
         }
+        */
 
-        DeselectTile();
+        gameController.SendToPlayer(tile);
         
-        if (!pieceMoved)
+    }
+
+
+    public void SelectPiece(Piece selectedPiece, ArrayList possibleMovements)
+    {
+        paintedPositions = new ArrayList();
+        paintedPositions.Add(selectedPiece.GetPosition());
+        // Change selected tile's color.
+        TileHandler tile = GetTile(selectedPiece.GetPosition());
+        tile.GetComponent<Image>().color = selectionColor;
+        // Change the color of the avaliable tiles.
+        foreach (Movement movement in possibleMovements)
         {
-            // Set the new last tile clicked
-            lastTileClicked = tile;
-            colorLastTileClicked = tile.GetComponent<Image>().color;
-            // Change selected tile's color.
-            tile.GetComponent<Image>().color = selectionColor;
+            paintedPositions.Add(movement.getDestinyPosition());
+            GetTile(movement.getDestinyPosition()).GetComponent<Image>().color = possibiliteColor;
         }
     }
 
-    private void DeselectTile()
+    public void DeselectTile()
     {
         // Deselect a tile if already selected;
-        if (lastTileClicked != null)
+        if (paintedPositions != null)
         {
-            lastTileClicked.GetComponent<Image>().color = colorLastTileClicked;
-            lastTileClicked = null;
+            foreach (IntVector2 tilePosition in paintedPositions)
+            {
+                this.GetTile(tilePosition).GetComponent<Image>().color = blackTileColor;
+            }
+            paintedPositions = null;
         }
+    }
+
+    public void MovePiece( Movement move, Player player )
+    {
+        pieceToMove = this.GetTile (move.getOriginalPosition())
+            .transform.GetChild(0).GetComponent<Piece>();
+
+        Debug.Log("piece moving " + pieceToMove.GetPosition().ToString());
+
+        // Get the piece that will be captured if exists.
+        Piece pieceToBeCaptured = move.getCapturedPiece();
+
+        // It is a capture movement?
+        if (pieceToBeCaptured != null)
+        {
+            pieceToBeCaptured.Capture();
+        }
+
+        /*
+         * Change the piece's parent to the 'overlay' object
+         * because we want the piece above others sprites.
+         */
+        pieceToMove.transform.SetParent(overlay.transform, true);
+
+        // Get this tile to reference it as a parent of the piece later.
+        targetTile = this.GetTile (move.getDestinyPosition());
+
+        //These are the parameters necessary to lerp the piece until the destiny.
+        timeStartedLerping = Time.time;
+        originPosition = pieceToMove.transform.position;
+        destinyPosition = targetTile.transform.position;
+
+        playerWaiting = player;
+        state = State.doingMovement;
+        Debug.Log("state Moving");
     }
 
     /**
      * Return tiles that the player could move to the original color.
      */
-    private void ResetPossibleMovements()
+    public void ResetPossibleMovements(ArrayList possibleMoves)
     {
-        if (canMove != null)
+        if (possibleMoves != null)
         {
-            foreach (Movement e in canMove)
+            foreach (Movement e in possibleMoves)
             {
-                GetTile(e.getDestinyPosition().x, e.getDestinyPosition().y).GetComponent<Image>().color = 
-                    new Color(0.3113f, 0.3113f, 0.3113f);
+                GetTile(e.getDestinyPosition())
+                    .GetComponent<Image>().color = new Color(0.3113f, 0.3113f, 0.3113f);
             }
         }
     }
@@ -332,7 +366,7 @@ public class Board : MonoBehaviour {
     private string PrintMovements(ArrayList list)
     {
         string result = "";
-        foreach (IntVector2 pos in list)
+        foreach (Movement pos in list)
         {
             result += pos.ToString() + " - ";
         }
@@ -360,6 +394,10 @@ public class Board : MonoBehaviour {
     /// </summary>
     private Movement GetMovementIfExists(ArrayList list, IntVector2 originalPos)
     {
+        if (list == null)
+        {
+            return null;
+        }
         foreach (Movement move in list)
         {
             if(move.getDestinyPosition().x == originalPos.x && move.getDestinyPosition().y == originalPos.y)
@@ -368,6 +406,22 @@ public class Board : MonoBehaviour {
             }
         }
         return null;
+    }
+
+    /// <summary>
+    /// Return the white pieces of the board.
+    /// </summary>
+    public ArrayList GetEnemyPieces()
+    {
+        return this.allEnemyPieces;
+    }
+
+    /// <summary>
+    /// Return the blue pieces of the board.
+    /// </summary>
+    public ArrayList GetPlayerPieces()
+    {
+        return this.allPlayerPieces;
     }
 
     /// <summary>
@@ -382,6 +436,14 @@ public class Board : MonoBehaviour {
             return this.allTiles[pos].GetComponent<TileHandler>();
         }
         return null;       
+    }
+
+    /// <summary>
+    /// Return a Tile of the board.
+    /// </summary>
+    public TileHandler GetTile(IntVector2 pos)
+    {
+        return this.GetTile(pos.x, pos.y);
     }
 
     /// <summary>
