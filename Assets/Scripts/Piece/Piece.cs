@@ -83,7 +83,9 @@ abstract public class Piece : MonoBehaviour {
         foreach (Movement move in path)
         {
             IntVector2 movePiecePosition = move.getCapturedPiece().GetPosition();
-            if (move.hasCapturedAnEnemy() && movePiecePosition.x == enemyPos.x && movePiecePosition.y == enemyPos.y)
+            if (move.hasCapturedAnEnemy() && 
+                movePiecePosition.x == enemyPos.x && 
+                movePiecePosition.y == enemyPos.y)
             {
 
                 return true;
@@ -222,6 +224,4 @@ abstract public class Piece : MonoBehaviour {
         }
         return result;
     }
-
-
 }

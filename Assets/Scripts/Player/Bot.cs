@@ -64,7 +64,7 @@ public class Bot : AbstractPlayer {
                 possibleMoves.AddRange(piece.GetWalkMovements());
             }
         }
-
+        // Get a random movement of the possible ones.
         int randomNumber = Random.Range(0, possibleMoves.Count);
         return (Movement) possibleMoves[randomNumber];
     }
@@ -74,13 +74,14 @@ public class Bot : AbstractPlayer {
     /// </summary>
     public override void NotifyEndOfMovement()
     {
+        // Find out if the current piece can capture again.
         ArrayList canMoveTo = currentPiece.GetBestSucessiveCapture();
         if (canMoveTo.Count != 0)
         {
             this.Play();
             return;
         }
-
+        // Finish this turn.
         currentPiece = null;
         base.board.DestroyCapturedPieces();
         this.gameController.NextTurn();

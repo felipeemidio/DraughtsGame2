@@ -23,6 +23,8 @@ public class Player : AbstractPlayer {
     public override void Play ()
     {
         somePieceCanCapture = base.SomePieceCanCapture(base.board.GetPlayerPieces());
+        if (somePieceCanCapture)
+            isCapturing = true;
     }
 
     public void SelectionHandler (TileHandler tile)
@@ -67,10 +69,6 @@ public class Player : AbstractPlayer {
             {
                 canMoveTo = currentPiece.GetWalkMovements();
             }
-            else if (canMoveTo.Count > 0)
-            {
-                isCapturing = true;
-            }
             // Paints select piece's tile and the avaliable tiles to move.
             base.board.SelectPiece (currentPiece, canMoveTo);   
         }
@@ -101,7 +99,7 @@ public class Player : AbstractPlayer {
     /// </summary>
     public override void NotifyEndOfMovement ()
     {
-        // See if the piececan capture again.
+        // See if the piece can capture again.
         if (isCapturing)
         {
             canMoveTo = currentPiece.GetBestSucessiveCapture();
@@ -120,6 +118,7 @@ public class Player : AbstractPlayer {
 
         // Reset state and call the next turn.
         isSucessiveCapture = false;
+        isCapturing = false;
         currentPiece = null;
         canMoveTo = null;
         base.board.DeselectTiles();

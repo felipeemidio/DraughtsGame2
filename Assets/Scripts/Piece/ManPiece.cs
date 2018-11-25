@@ -144,8 +144,6 @@ public class ManPiece : Piece {
                 newPiece.SetCurrentPosition();
                 // Destroy this piece
                 Destroy(this.gameObject);
-                // Refresh the active pieces.
-                base.board.RefreshAllPieces();
             }
         }
     }

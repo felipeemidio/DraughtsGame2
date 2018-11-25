@@ -5,44 +5,44 @@ using UnityEngine.UI;
 
 public class Board : MonoBehaviour {
 
+    /**
+     * Public Variables.
+     */
+    public Color selectionColor;
+    public Color possibiliteColor;
+    public Color blackTileColor;
+    public List<GameObject> allTiles;
+    // These are required to make tha animation.
+    public float speed = 5f;
+    public float timeTakenDuringLerp = 0.1f;
+
+    /**
+     * Private Variables.
+     */
+    private bool tileClickedCalled = false;
+    private GameController gameController;
+    private Piece pieceToMove = null;
+    private ArrayList allPlayerPieces;
+    private ArrayList allEnemyPieces;
+    private ArrayList paintedPositions = null;
+    // These are required to make tha animation.
+    private float timeStartedLerping;
+    private Vector3 originPosition;
+    private Vector3 destinyPosition;
+    // Use this to put to the piece overlay other sprites.
+    private GameObject overlay;
+    private TileHandler targetTile;
+
     // Possible states of the board.
-    public enum State {
+    private enum State
+    {
         waitingMovement,
         playerSelectAPiece,
         enemyTime,
         doingMovement,
         haveWinner
     }
-
     private State state;
-
-    // Public Variables.
-    public Color selectionColor;
-    public Color possibiliteColor;
-    public Color blackTileColor;
-    public List<GameObject> allTiles;
-    public float speed = 5f;
-
-    public float timeTakenDuringLerp = 0.1f;
-
-    // Private Variables.
-    private bool tileClickedCalled = false;
-
-    private float timeStartedLerping;
-    private Vector3 originPosition;
-    private Vector3 destinyPosition;
-
-    //private Piece currentPiece;
-    // Use this to put to the piece overlay other sprites.
-    private GameObject overlay;
-    private TileHandler targetTile;
-    private GameController gameController;
-    private ArrayList allPlayerPieces;
-    private ArrayList allEnemyPieces;
-
-    Piece pieceToMove = null;
-    private ArrayList paintedPositions = null;
-
 
     void Awake()
     {
@@ -224,20 +224,22 @@ public class Board : MonoBehaviour {
      */
     public void DestroyCapturedPieces()
     {
+        // Destroy captured enemy's pieces.
         ArrayList destroyedPieces = new ArrayList();
-        foreach (EnemyManPiece piece in allEnemyPieces)
+        foreach (Piece piece in allEnemyPieces)
         {
             if (piece.HasBeenCaptured())
             {
                 destroyedPieces.Add( piece);
             }
         }
-        foreach (EnemyManPiece pieceToBeDestroyed in destroyedPieces)
+        foreach (Piece pieceToBeDestroyed in destroyedPieces)
         {
             allEnemyPieces.Remove(pieceToBeDestroyed);
             Destroy(pieceToBeDestroyed.gameObject);
         }
 
+        // Destroy captured player's pieces.
         destroyedPieces = new ArrayList();
         foreach (Piece piece in allPlayerPieces)
         {
@@ -281,8 +283,17 @@ public class Board : MonoBehaviour {
         allPiecesObjects = GameObject.FindGameObjectsWithTag("WhitePiece");
         foreach (GameObject pieceObject in allPiecesObjects)
         {
-            if (!pieceObject.GetComponent<Piece>().HasBeenCaptured())
+            if (pieceObject.GetComponent<Piece>().HasBeenCaptured())
+                continue;
+
+            if (pieceObject.GetComponent<EnemyManPiece>() != null)
+            {
                 allEnemyPieces.Add(pieceObject.GetComponent<EnemyManPiece>());
+            }
+            else
+            {
+                allEnemyPieces.Add(pieceObject.GetComponent<EnemyKingPiece>());
+            }
         }
     }
 
