@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Bot : AbstractPlayer {
 
+    private Piece currentPiece = null; 
+
     /**
      * CONSTRUCTOR
      */
@@ -19,21 +21,34 @@ public class Bot : AbstractPlayer {
     /// </summary>
     public override void Play()
     {
-        Debug.Log ("BOT Playing");
+        Debug.Log("BOT Playing");
 
-        Movement choseMove = ChooseOneMovement();
+        Movement choseMove;
+        // Select the same piece if it's playing again.
+        if (currentPiece != null)
+        {
+            choseMove = (Movement) currentPiece.GetBestSucessiveCapture()[0];
+        }
+        // Select a new piece if it's the first play of this turn.
+        else
+        {
+            choseMove = ChooseOneMovement();
+            this.currentPiece = base.board.GetTile(choseMove.getOriginalPosition())
+                .GetChild().GetComponent<Piece>();
+        }
+        
         Debug.Log(choseMove.ToString());
         base.board.MovePiece (choseMove);
     }
 
-    /**
-     * Select one possible movement.
-     */
+    /// <summary>
+    /// Select one possible movement.
+    /// </summary>
     public Movement ChooseOneMovement ()
     {
         ArrayList botPieces = base.board.GetEnemyPieces();
         ArrayList possibleMoves = new ArrayList();
-
+        // Choose between the one that can capture, if exists.
         if (base.SomePieceCanCapture (botPieces))
         {
             foreach (Piece piece in botPieces)
@@ -41,6 +56,7 @@ public class Bot : AbstractPlayer {
                 possibleMoves.AddRange(piece.GetBestSucessiveCapture());
             }
         }
+        // Get all possible walk movements if anyone can capture.
         else
         {
             foreach (Piece piece in botPieces)
@@ -58,6 +74,14 @@ public class Bot : AbstractPlayer {
     /// </summary>
     public override void NotifyEndOfMovement()
     {
+        ArrayList canMoveTo = currentPiece.GetBestSucessiveCapture();
+        if (canMoveTo.Count != 0)
+        {
+            this.Play();
+            return;
+        }
+
+        currentPiece = null;
         base.board.DestroyCapturedPieces();
         this.gameController.NextTurn();
     }
