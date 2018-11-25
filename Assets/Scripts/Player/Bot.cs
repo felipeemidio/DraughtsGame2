@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Bot : AbstractPlayer {
 
-    private Piece currentPiece = null; 
+    private Piece currentPiece = null;
+    private bool isCapturing = false;
 
     /**
      * CONSTRUCTOR
@@ -21,7 +22,7 @@ public class Bot : AbstractPlayer {
     /// </summary>
     public override void Play()
     {
-        Debug.Log("BOT Playing");
+        //Debug.Log("BOT Playing");
 
         Movement choseMove;
         // Select the same piece if it's playing again.
@@ -37,7 +38,7 @@ public class Bot : AbstractPlayer {
                 .GetChild().GetComponent<Piece>();
         }
         
-        Debug.Log(choseMove.ToString());
+        //Debug.Log(choseMove.ToString());
         base.board.MovePiece (choseMove);
     }
 
@@ -51,6 +52,7 @@ public class Bot : AbstractPlayer {
         // Choose between the one that can capture, if exists.
         if (base.SomePieceCanCapture (botPieces))
         {
+            isCapturing = true;
             foreach (Piece piece in botPieces)
             {
                 possibleMoves.AddRange(piece.GetBestSucessiveCapture());
@@ -75,14 +77,19 @@ public class Bot : AbstractPlayer {
     public override void NotifyEndOfMovement()
     {
         // Find out if the current piece can capture again.
-        ArrayList canMoveTo = currentPiece.GetBestSucessiveCapture();
-        if (canMoveTo.Count != 0)
+        if (isCapturing)
         {
-            this.Play();
-            return;
+            ArrayList canMoveTo = currentPiece.GetBestSucessiveCapture();
+            if (canMoveTo.Count != 0)
+            {
+                this.Play();
+                return;
+            }
         }
+        
         // Finish this turn.
         currentPiece = null;
+        isCapturing = false;
         base.board.DestroyCapturedPieces();
         this.gameController.NextTurn();
     }

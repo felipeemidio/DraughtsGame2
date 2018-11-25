@@ -21,13 +21,27 @@ abstract public class AbstractPlayer {
     /// Verify if some piece int the piece list parameter can capture.
     /// Return true if some piece can capture and false if doesn't.
     /// </summary>
-    protected bool SomePieceCanCapture(ArrayList piecesList)
+    public bool SomePieceCanCapture(ArrayList piecesList)
     {
         ArrayList captureMovements;
         foreach (Piece piece in piecesList)
         {
             captureMovements = piece.GetCaptureMovements();
             if (captureMovements.Count != 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public bool SomePieceCanWalk(ArrayList piecesList)
+    {
+        ArrayList walkMovements;
+        foreach (Piece piece in piecesList)
+        {
+            walkMovements = piece.GetWalkMovements();
+            if (walkMovements.Count != 0)
             {
                 return true;
             }

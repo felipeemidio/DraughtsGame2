@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 224092113853380566}
   - component: {fileID: 222544806387146358}
   - component: {fileID: 114034948911476608}
+  - component: {fileID: 114420746721167514}
   m_Layer: 5
   m_Name: KingGrayPiece
   m_TagString: WhitePiece
@@ -55,6 +56,17 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+--- !u!114 &114420746721167514
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1461645603665878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0693de7a901de6e418d6d23cf6331d2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!222 &222544806387146358
 CanvasRenderer:
   m_ObjectHideFlags: 1

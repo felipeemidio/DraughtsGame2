@@ -73,13 +73,49 @@ public class GameController : MonoBehaviour {
     public void NotifyPlayerEndOfMovement()
     {
         if(turn == Turn.playerTurn) {
+            
             player.NotifyEndOfMovement();
+            // Verify if the player won the game.
+            if (WinGame(bot, this.board.GetEnemyPieces()))
+            {
+                Debug.Log("Player WON THE GAME");
+            }
+            else
+            {
+                Debug.Log("Player not win yet");
+            }
         }
         else
         {
             bot.NotifyEndOfMovement();
+            // Verify if the bot won the game.
+            if (WinGame(player, this.board.GetPlayerPieces()))
+            {
+                Debug.Log("Bot WON THE GAME");
+            }
+            else
+            {
+                Debug.Log("Bot not win yet");
+            }
         }
         
+    }
+
+    /**
+     * Verify the winning condition.
+     * 
+     * 1- the player hasn't pieces.
+     * 2- the player can't move the pieces his has.
+     */
+    private bool WinGame(AbstractPlayer absEnemy, ArrayList enemiesPieces)
+    {
+        if (enemiesPieces.Count == 0 ||
+            (!absEnemy.SomePieceCanCapture(enemiesPieces) &&
+            !absEnemy.SomePieceCanWalk(enemiesPieces)))
+        {
+            return true;
+        }
+        return false;
     }
 
     /*
