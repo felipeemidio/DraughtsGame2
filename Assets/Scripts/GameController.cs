@@ -5,16 +5,28 @@ using UnityEngine.UI;
 
 public class GameController : MonoBehaviour {
     public Text turnText;
-    public enum Turn
+    public Image resultPanel;
+
+    private enum Turn
     {
         enemyTurn,
         playerTurn
     }
-
     private Turn turn;
     private Board board;
     private Bot bot;
     private Player player;
+
+    void Awake()
+    {
+        turn = Turn.enemyTurn;
+        if (resultPanel != null)
+            resultPanel.gameObject.SetActive(false);
+        else
+            Debug.LogError("Couldn't find the panel object.");
+        bot = new Bot();
+        player = new Player();
+    }
 
     /*
      * Initialize variables.
@@ -22,9 +34,6 @@ public class GameController : MonoBehaviour {
     void Start()
     {
         board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board> ();
-        bot = new Bot();
-        player = new Player();
-        turn = Turn.enemyTurn;
         this.NextTurn();
         if (turnText == null)
         {
@@ -39,7 +48,6 @@ public class GameController : MonoBehaviour {
         {
             NextTurn();
         }
-
     }
 
     /*
@@ -76,13 +84,11 @@ public class GameController : MonoBehaviour {
             
             player.NotifyEndOfMovement();
             // Verify if the player won the game.
-            if (WinGame(bot, this.board.GetEnemyPieces()))
+            if (WinGame(bot, this.board.GetEnemyPieces()) && resultPanel != null)
             {
-                Debug.Log("Player WON THE GAME");
-            }
-            else
-            {
-                Debug.Log("Player not win yet");
+                resultPanel.gameObject.SetActive(true);
+                Text resultText = resultPanel.transform.GetChild(0).GetComponent<Text>();
+                resultText.text = "Y O U   W O N !";
             }
         }
         else
@@ -91,14 +97,11 @@ public class GameController : MonoBehaviour {
             // Verify if the bot won the game.
             if (WinGame(player, this.board.GetPlayerPieces()))
             {
-                Debug.Log("Bot WON THE GAME");
+                resultPanel.gameObject.SetActive(true);
+                Text resultText = resultPanel.transform.GetChild(0).GetComponent<Text>();
+                resultText.text = "Y O U   L O S E !";
             }
-            else
-            {
-                Debug.Log("Bot not win yet");
-            }
-        }
-        
+        } 
     }
 
     /**
