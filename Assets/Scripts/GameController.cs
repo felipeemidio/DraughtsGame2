@@ -13,6 +13,10 @@ public class GameController : MonoBehaviour {
         playerTurn
     }
     private Turn turn;
+    private int turnsKingMoving;
+    private bool inFinal = false;
+    private int finalCounter = 0;
+    private bool isGameOver = false;
     private Board board;
     private Bot bot;
     private Player player;
@@ -26,6 +30,7 @@ public class GameController : MonoBehaviour {
             Debug.LogError("Couldn't find the panel object.");
         bot = new Bot();
         player = new Player();
+        turnsKingMoving = 0;
     }
 
     /*
@@ -61,6 +66,7 @@ public class GameController : MonoBehaviour {
         {
             turn = Turn.enemyTurn;
             turnText.text = "ENEMY'S TURN";
+            Debug.Log("kings player has - " + this.board.NumberOfPlayerKingPieces());
             bot.Play();
 
         }
@@ -80,32 +86,53 @@ public class GameController : MonoBehaviour {
 
     public void NotifyPlayerEndOfMovement()
     {
-        if(turn == Turn.playerTurn) {
-            
+        // Refresh allin case some was destructed.
+        //board.RefreshAllPieces();
+        bool isSucessiveCapture = false;
+        IsInFinals();
+        if (turn == Turn.playerTurn) {
+            // See if just move a king piece
+            RefreshDrawCounters(player);
+
             player.NotifyEndOfMovement();
+            isSucessiveCapture = player.GetIsSucessiveCapture();
+            if (!isSucessiveCapture)
+                board.RefreshAllPieces();
             // Verify if the player won the game.
             if (WinGame(bot, this.board.GetEnemyPieces()) && resultPanel != null)
             {
-                resultPanel.gameObject.SetActive(true);
-                Text resultText = resultPanel.transform.GetChild(0).GetComponent<Text>();
-                resultText.text = "Y O U   W O N !";
+                ShowResultPanel("Y O U   W O N !");
             }
         }
         else
         {
+            // See if just move a king piece
+            RefreshDrawCounters(bot);
+
             bot.NotifyEndOfMovement();
+            isSucessiveCapture = bot.GetIsSucessiveCapture();
+            if (!isSucessiveCapture)
+                board.RefreshAllPieces();
             // Verify if the bot won the game.
             if (WinGame(player, this.board.GetPlayerPieces()))
             {
-                resultPanel.gameObject.SetActive(true);
-                Text resultText = resultPanel.transform.GetChild(0).GetComponent<Text>();
-                resultText.text = "Y O U   L O S E !";
+                ShowResultPanel("Y O U   L O S E !");
             }
-        } 
+        }
+
+        if (inFinal)
+            finalCounter += 1;
+
+        if(turnsKingMoving >= 20 || finalCounter >= 10)
+        {
+            ShowResultPanel("D R A W !");
+        }
+        if(!isSucessiveCapture && !isGameOver)
+            this.NextTurn();
     }
 
     /**
-     * Verify the winning condition.
+     * Verify the winning condition given a player.
      * 
      * 1- the player hasn't pieces.
      * 2- the player can't move the pieces his has.
@@ -116,15 +143,61 @@ public class GameController : MonoBehaviour {
             (!absEnemy.SomePieceCanCapture(enemiesPieces) &&
             !absEnemy.SomePieceCanWalk(enemiesPieces)))
         {
+            isGameOver = true;
             return true;
         }
         return false;
     }
 
-    /*
-     * Return true if is the player turn.
-     */
-    public bool isPlayerTurn()
+    /// <summary>
+    /// Updates the turnKingMoving variable that is incremented
+    /// when some player just moves a king.
+    /// </summary>
+    private void RefreshDrawCounters(AbstractPlayer absPlayer)
+    {
+        if (absPlayer.UsedKingPiece() && !absPlayer.GetIsCapturing())
+        {
+            turnsKingMoving += 1;
+        }
+        else
+        {
+            turnsKingMoving = 0;
+        }
+    }
+
+    /// <summary>
+    /// See the condition to start with the final countdown.
+    /// If the game do not finish
+    /// </summary>
+    private void IsInFinals ()
+    {
+        if ( !inFinal &&
+            this.board.GetPlayerPieces().Count <= 2 &&
+            this.board.GetEnemyPieces().Count <= 2 &&
+            this.board.NumberOfPlayerManPieces() + this.board.NumberOfEnemyManPieces() <= 1 )
+        {
+            Debug.Log("Estamos em finais");
+            inFinal = true;
+        }
+    }
+
+    /// <summary>
+    /// Finish the gamez.
+    /// Open the result panel with the text given as parameter.
+    /// </summary>
+    private void ShowResultPanel(string text)
+    {
+        if (resultPanel.gameObject.activeSelf)
+            return;
+        resultPanel.gameObject.SetActive(true);
+        Text resultText = resultPanel.transform.GetChild(0).GetComponent<Text>();
+        resultText.text = text;
+    }
+
+    /// <summary>
+    /// Return true if is the player turn.
+    /// </summary>
+    public bool IsPlayerTurn()
     {
         if (turn == Turn.playerTurn)
             return true;

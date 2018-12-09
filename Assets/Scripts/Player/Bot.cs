@@ -4,17 +4,12 @@ using UnityEngine;
 
 public class Bot : AbstractPlayer {
 
-    private Piece currentPiece = null;
-    private bool isCapturing = false;
-
     /**
      * CONSTRUCTOR
      */
     public Bot ()
     {
         base.board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
-        base.gameController = GameObject.FindGameObjectWithTag("GameController")
-            .GetComponent<GameController>();
     }
 
     /// <summary>
@@ -26,15 +21,15 @@ public class Bot : AbstractPlayer {
 
         Movement choseMove;
         // Select the same piece if it's playing again.
-        if (currentPiece != null)
+        if (base.currentPiece != null)
         {
-            choseMove = (Movement) currentPiece.GetBestSucessiveCapture()[0];
+            choseMove = (Movement) base.currentPiece.GetBestSucessiveCapture()[0];
         }
         // Select a new piece if it's the first play of this turn.
         else
         {
             choseMove = ChooseOneMovement();
-            this.currentPiece = base.board.GetTile(choseMove.getOriginalPosition())
+            base.currentPiece = base.board.GetTile(choseMove.getOriginalPosition())
                 .GetChild().GetComponent<Piece>();
         }
         
@@ -49,10 +44,11 @@ public class Bot : AbstractPlayer {
     {
         ArrayList botPieces = base.board.GetEnemyPieces();
         ArrayList possibleMoves = new ArrayList();
-        // Choose between the one that can capture, if exists.
+
+        // Get all possible capture movements. if exists.
         if (base.SomePieceCanCapture (botPieces))
         {
-            isCapturing = true;
+            base.isCapturing = true;
             foreach (Piece piece in botPieces)
             {
                 possibleMoves.AddRange(piece.GetBestSucessiveCapture());
@@ -77,20 +73,21 @@ public class Bot : AbstractPlayer {
     public override void NotifyEndOfMovement()
     {
         // Find out if the current piece can capture again.
-        if (isCapturing)
+        if (base.isCapturing)
         {
-            ArrayList canMoveTo = currentPiece.GetBestSucessiveCapture();
+            ArrayList canMoveTo = base.currentPiece.GetBestSucessiveCapture();
+            isSucessiveCapture = true;
             if (canMoveTo.Count != 0)
             {
                 this.Play();
                 return;
             }
         }
-        
+
         // Finish this turn.
-        currentPiece = null;
-        isCapturing = false;
+        isSucessiveCapture = false;
+        base.isCapturing = false;
+        base.currentPiece = null;
         base.board.DestroyCapturedPieces();
-        this.gameController.NextTurn();
     }
 }

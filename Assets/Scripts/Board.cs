@@ -91,7 +91,7 @@ public class Board : MonoBehaviour {
         {
             // Get right mouse's button click.
             if (Input.GetMouseButtonUp(0) && state != State.doingMovement
-                && gameController.isPlayerTurn())
+                && gameController.IsPlayerTurn())
             {
                 // Deselect when clicked out of the table.
                 if (tileClickedCalled)
@@ -117,7 +117,7 @@ public class Board : MonoBehaviour {
         this.DeselectTiles();
 
         // Do nothing if a piece is already moving.
-        if (state == State.doingMovement || !this.gameController.isPlayerTurn())
+        if (state == State.doingMovement || !this.gameController.IsPlayerTurn())
         {
             return;
         }
@@ -340,6 +340,49 @@ public class Board : MonoBehaviour {
             }
         }
         return null;
+    }
+
+    /// <summary>
+    /// Return the number of blue king pieces on the board.
+    /// </summary>
+    public int NumberOfPlayerKingPieces()
+    {
+        return this.CountKingPieces(this.allPlayerPieces);
+    }
+
+    /// <summary>
+    /// Return the number of blue man pieces on the board.
+    /// </summary>
+    public int NumberOfPlayerManPieces()
+    {
+        return this.allPlayerPieces.Count - this.CountKingPieces(this.allPlayerPieces);
+    }
+
+    /// <summary>
+    /// Return the number of white king pieces on the board.
+    /// </summary>
+    public int NumberOfEnemyKingPieces()
+    {
+        return this.CountKingPieces(this.allEnemyPieces);
+    }
+
+    /// <summary>
+    /// Return the number of white king pieces on the board.
+    /// </summary>
+    public int NumberOfEnemyManPieces()
+    {
+        return this.allEnemyPieces.Count - this.CountKingPieces(this.allEnemyPieces);
+    }
+
+    private int CountKingPieces(ArrayList list)
+    {
+        int counter = 0;
+        foreach (Piece p in list)
+        {
+            if (p.GetComponent<KingPiece>() != null)
+                counter++;
+        }
+        return counter;
     }
 
     /// <summary>

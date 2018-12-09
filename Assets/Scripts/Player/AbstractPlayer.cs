@@ -5,7 +5,9 @@ using UnityEngine;
 abstract public class AbstractPlayer {
 
     protected Board board;
-    protected GameController gameController;
+    protected Piece currentPiece = null;
+    protected bool isCapturing = false;
+    protected bool isSucessiveCapture = false;
 
     /**
      * Sign the start of that player's turn.
@@ -16,6 +18,18 @@ abstract public class AbstractPlayer {
      * It's called when the movement chose by this player is finished.
      */
     public abstract void NotifyEndOfMovement();
+
+    /// <summary>
+    /// Return true if the current piece used was a king.
+    /// </summary>
+    public bool UsedKingPiece()
+    {
+        if (currentPiece != null && currentPiece.GetComponent<KingPiece>())
+        {
+            return true;
+        }
+        return false;
+    }
 
     /// <summary>
     /// Verify if some piece int the piece list parameter can capture.
@@ -47,5 +61,15 @@ abstract public class AbstractPlayer {
             }
         }
         return false;
+    }
+
+    public bool GetIsCapturing()
+    {
+        return this.isCapturing;
+    }
+
+    public bool GetIsSucessiveCapture()
+    {
+        return this.isSucessiveCapture;
     }
 }
