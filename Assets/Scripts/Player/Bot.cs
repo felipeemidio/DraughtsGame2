@@ -34,6 +34,7 @@ public class Bot : AbstractPlayer {
                 .GetChild().GetComponent<Piece>();
         }
 
+        Debug.Log(TranslateBoard());
         //Debug.Log(choseMove.ToString());
         base.board.MovePiece(choseMove);
     }
@@ -47,13 +48,11 @@ public class Bot : AbstractPlayer {
         base.board.RefreshAllPieces();
         ArrayList botPieces = base.board.GetEnemyPieces();
         ArrayList possibleMoves = this.ga.GenerateMutations(this, botPieces);
-        //Debug.Log("All Movements:\n" + PrintMovements(possibleMoves));
 
         int biggestAdaptation = -100;
         Movement bestMovement = null;
         foreach (Movement move in possibleMoves)
         {
-            //Debug.Log("possible move: " + move.ToString());
             int adaptation = this.ga.AdaptationScore(move);
             if (adaptation > biggestAdaptation)
             {
@@ -61,8 +60,6 @@ public class Bot : AbstractPlayer {
                 bestMovement = move;
             }
         }
-        //Debug.Log("Best Movement- Score: " + biggestAdaptation + 
-        //    "\nMovement " + bestMovement.ToString());
         return bestMovement;
     }
 
@@ -96,14 +93,53 @@ public class Bot : AbstractPlayer {
 
     }
 
-    private string PrintMovements(ArrayList list)
+    /// <summary>
+    /// Tranform the current state of the board in a string.
+    /// </summary>
+    private string TranslateBoard()
     {
         string result = "";
-        foreach (Movement move in list)
+        TileHandler tile;
+        for (int i = 1; i <= 8; ++i)
         {
-            result += move.ToString() + " - ";
+            for(int j = 1; j <= 8; ++j)
+            {
+                tile = base.board.GetTile(i, j);
+                if (!tile.HasChild())
+                {
+                    result += '#';
+                }
+                else
+                {
+                    Piece child = tile.GetChild().GetComponent<Piece>();
+                    if (child.HasBeenCaptured())
+                        result += '#';
+                    else if (child.GetComponent<ManPiece>() != null)
+                    {
+                        if (child.CompareTag("BluePiece"))
+                        {
+                            result += 'b';
+                        }
+                        else
+                        {
+                            result += 'w';
+                        }
+                    }
+                    else
+                    {
+                        if (child.CompareTag("BluePiece"))
+                        {
+                            result += 'B';
+                        }
+                        else
+                        {
+                            result += 'W';
+                        }
+                    }
+                }
+            }
         }
-        result += "final.";
+
         return result;
     }
 }
