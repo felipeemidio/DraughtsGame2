@@ -66,7 +66,8 @@ public class GameController : MonoBehaviour {
         {
             turn = Turn.enemyTurn;
             turnText.text = "ENEMY'S TURN";
-            bot.Play();
+            //bot.Play();
+            StartCoroutine(BotPlay());
 
         }
         else
@@ -76,6 +77,12 @@ public class GameController : MonoBehaviour {
             board.SomePieceCanCapture();
             player.Play();
         }
+    }
+
+    IEnumerator BotPlay()
+    {
+        yield return new WaitForSeconds(1.0f);
+        bot.Play();
     }
 
     public void SendToPlayer(TileHandler tile)

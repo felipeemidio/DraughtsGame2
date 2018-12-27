@@ -62,7 +62,7 @@ public class MyGeneticAlgorithm {
         }
         else if (CanProtectAFriend(move))
         {
-            Debug.Log("Can protect with move " + move.ToString());
+            //Debug.Log("Can protect with move " + move.ToString());
             score = 2;
         }
 

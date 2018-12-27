@@ -19,6 +19,7 @@ public class Board : MonoBehaviour {
     /**
      * Private Variables.
      */
+    private float waitTime = 0.5f;
     private bool tileClickedCalled = false;
     private GameController gameController;
     private Piece pieceToMove = null;
@@ -82,8 +83,7 @@ public class Board : MonoBehaviour {
 
                 state = State.waitingMovement;
 
-                // Send a message to player saying that the piece finish to move.
-                gameController.NotifyPlayerEndOfMovement();
+                StartCoroutine(FinishMovement());
             }
         }
         // Get mouse clicks
@@ -104,6 +104,14 @@ public class Board : MonoBehaviour {
                 }
             }   
         }
+    }
+
+    private IEnumerator FinishMovement()
+    {
+        
+        // Send a message to player saying that the piece finish to move.
+        gameController.NotifyPlayerEndOfMovement();
+        yield return new WaitForSeconds(waitTime);
     }
 
     /**

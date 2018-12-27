@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Bot : AbstractPlayer {
 
-    MyGeneticAlgorithm ga;
+    private MyGeneticAlgorithm ga;
 
     /**
      * CONSTRUCTOR
@@ -20,8 +20,6 @@ public class Bot : AbstractPlayer {
     /// </summary>
     public override void Play()
     {
-        //Debug.Log("BOT Playing");
-
         Movement choseMove;
         // Select the same piece if it's playing again.
         if (base.currentPiece != null)
@@ -40,38 +38,22 @@ public class Bot : AbstractPlayer {
         base.board.MovePiece(choseMove);
     }
 
+
     /// <summary>
     /// Select one possible movement.
     /// </summary>
     public Movement ChooseOneMovement()
     {
+        base.board.RefreshAllPieces();
         ArrayList botPieces = base.board.GetEnemyPieces();
-        ArrayList possibleMoves = new ArrayList();
+        ArrayList possibleMoves = this.ga.GenerateMutations(this, botPieces);
+        //Debug.Log("All Movements:\n" + PrintMovements(possibleMoves));
 
-        // Get all possible capture movements. if exists.
-        if (base.SomePieceCanCapture(botPieces))
-        {
-            base.isCapturing = true;
-            foreach (Piece piece in botPieces)
-            {
-                possibleMoves.AddRange(piece.GetBestSucessiveCapture());
-            }
-        }
-        // Get all possible walk movements if anyone can capture.
-        else
-        {
-            foreach (Piece piece in botPieces)
-            {
-                possibleMoves.AddRange(piece.GetWalkMovements());
-            }
-        }
-
-        //TODO: Adaptation Function
         int biggestAdaptation = -100;
         Movement bestMovement = null;
         foreach (Movement move in possibleMoves)
         {
-            Debug.Log("possible move: " + move.ToString());
+            //Debug.Log("possible move: " + move.ToString());
             int adaptation = this.ga.AdaptationScore(move);
             if (adaptation > biggestAdaptation)
             {
@@ -79,11 +61,8 @@ public class Bot : AbstractPlayer {
                 bestMovement = move;
             }
         }
-        Debug.Log("Best Movement- Score: " + biggestAdaptation + 
-            "\nMovement " + bestMovement.ToString());
-        // Get a random movement of the possible ones.
-        //int randomNumber = Random.Range(0, possibleMoves.Count);
-        //return (Movement) possibleMoves[randomNumber];
+        //Debug.Log("Best Movement- Score: " + biggestAdaptation + 
+        //    "\nMovement " + bestMovement.ToString());
         return bestMovement;
     }
 
@@ -114,5 +93,17 @@ public class Bot : AbstractPlayer {
         base.isCapturing = false;
         base.currentPiece = null;
         base.board.DestroyCapturedPieces();
+
+    }
+
+    private string PrintMovements(ArrayList list)
+    {
+        string result = "";
+        foreach (Movement move in list)
+        {
+            result += move.ToString() + " - ";
+        }
+        result += "final.";
+        return result;
     }
 }
