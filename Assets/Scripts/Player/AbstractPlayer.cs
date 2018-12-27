@@ -63,6 +63,11 @@ abstract public class AbstractPlayer {
         return false;
     }
 
+    public void SetIsCapturing(bool value)
+    {
+        this.isCapturing = value;
+    }
+
     public bool GetIsCapturing()
     {
         return this.isCapturing;

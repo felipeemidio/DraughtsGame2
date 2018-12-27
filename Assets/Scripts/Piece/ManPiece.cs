@@ -119,7 +119,7 @@ public class ManPiece : Piece {
     public void Promote()
     {
         // Find the respective promotion line.
-        int promotionLine = 0;
+        int promotionLine = 1;
         if (this.forward == 1)
         {
             promotionLine = 8;

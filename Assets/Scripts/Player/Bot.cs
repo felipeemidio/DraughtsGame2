@@ -4,12 +4,15 @@ using UnityEngine;
 
 public class Bot : AbstractPlayer {
 
+    MyGeneticAlgorithm ga;
+
     /**
      * CONSTRUCTOR
      */
-    public Bot ()
+    public Bot()
     {
         base.board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
+        ga = new MyGeneticAlgorithm(base.board);
     }
 
     /// <summary>
@@ -23,7 +26,7 @@ public class Bot : AbstractPlayer {
         // Select the same piece if it's playing again.
         if (base.currentPiece != null)
         {
-            choseMove = (Movement) base.currentPiece.GetBestSucessiveCapture()[0];
+            choseMove = (Movement)base.currentPiece.GetBestSucessiveCapture()[0];
         }
         // Select a new piece if it's the first play of this turn.
         else
@@ -32,21 +35,21 @@ public class Bot : AbstractPlayer {
             base.currentPiece = base.board.GetTile(choseMove.getOriginalPosition())
                 .GetChild().GetComponent<Piece>();
         }
-        
+
         //Debug.Log(choseMove.ToString());
-        base.board.MovePiece (choseMove);
+        base.board.MovePiece(choseMove);
     }
 
     /// <summary>
     /// Select one possible movement.
     /// </summary>
-    public Movement ChooseOneMovement ()
+    public Movement ChooseOneMovement()
     {
         ArrayList botPieces = base.board.GetEnemyPieces();
         ArrayList possibleMoves = new ArrayList();
 
         // Get all possible capture movements. if exists.
-        if (base.SomePieceCanCapture (botPieces))
+        if (base.SomePieceCanCapture(botPieces))
         {
             base.isCapturing = true;
             foreach (Piece piece in botPieces)
@@ -62,9 +65,26 @@ public class Bot : AbstractPlayer {
                 possibleMoves.AddRange(piece.GetWalkMovements());
             }
         }
+
+        //TODO: Adaptation Function
+        int biggestAdaptation = -100;
+        Movement bestMovement = null;
+        foreach (Movement move in possibleMoves)
+        {
+            Debug.Log("possible move: " + move.ToString());
+            int adaptation = this.ga.AdaptationScore(move);
+            if (adaptation > biggestAdaptation)
+            {
+                biggestAdaptation = adaptation;
+                bestMovement = move;
+            }
+        }
+        Debug.Log("Best Movement- Score: " + biggestAdaptation + 
+            "\nMovement " + bestMovement.ToString());
         // Get a random movement of the possible ones.
-        int randomNumber = Random.Range(0, possibleMoves.Count);
-        return (Movement) possibleMoves[randomNumber];
+        //int randomNumber = Random.Range(0, possibleMoves.Count);
+        //return (Movement) possibleMoves[randomNumber];
+        return bestMovement;
     }
 
     /// <summary>
@@ -83,6 +103,11 @@ public class Bot : AbstractPlayer {
                 return;
             }
         }
+
+        // Try to promote
+        ManPiece currentManPiece = base.currentPiece.GetComponent<ManPiece>();
+        if (currentManPiece != null)
+            currentManPiece.Promote();
 
         // Finish this turn.
         isSucessiveCapture = false;

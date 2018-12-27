@@ -66,7 +66,6 @@ public class GameController : MonoBehaviour {
         {
             turn = Turn.enemyTurn;
             turnText.text = "ENEMY'S TURN";
-            Debug.Log("kings player has - " + this.board.NumberOfPlayerKingPieces());
             bot.Play();
 
         }

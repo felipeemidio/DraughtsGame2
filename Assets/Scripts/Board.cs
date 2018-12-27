@@ -402,7 +402,7 @@ public class Board : MonoBehaviour {
     }
 
     /// <summary>
-    /// Return a Tile of the board.
+    /// Return a Tile of the board or null if position not valid.
     /// </summary>
     public TileHandler GetTile(int row, int collumn)
     {
@@ -416,7 +416,7 @@ public class Board : MonoBehaviour {
     }
 
     /// <summary>
-    /// Return a Tile of the board.
+    /// Return a Tile of the board or null if position not valid.
     /// </summary>
     public TileHandler GetTile(IntVector2 pos)
     {
