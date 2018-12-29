@@ -78,7 +78,7 @@ public class MyGeneticAlgorithm {
         Transform originalParent = null;
         if (move.hasCapturedAnEnemy())
         {
-            pieceT = move.getCapturedPiece().transform;
+            pieceT = board.GetTile(move.getCapturedPiece()).GetChild().transform;
             // Retire the current piece of the board.
             originalParent = pieceT.parent;
             Transform overlay = GameObject.FindGameObjectWithTag("OverLay").transform;

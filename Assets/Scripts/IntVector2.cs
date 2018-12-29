@@ -1,10 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
 
 /**
  * The same as Vector2 but with integer values.
  */
+[Serializable]
 public class IntVector2 {
 
     public int x;

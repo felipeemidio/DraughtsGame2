@@ -1,10 +1,10 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Bot : AbstractPlayer {
 
     private MyGeneticAlgorithm ga;
+    private ArrayList configList;
 
     /**
      * CONSTRUCTOR
@@ -13,6 +13,7 @@ public class Bot : AbstractPlayer {
     {
         base.board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
         ga = new MyGeneticAlgorithm(base.board);
+        configList = new ArrayList();
     }
 
     /// <summary>
@@ -20,6 +21,7 @@ public class Bot : AbstractPlayer {
     /// </summary>
     public override void Play()
     {
+
         Movement choseMove;
         // Select the same piece if it's playing again.
         if (base.currentPiece != null)
@@ -34,8 +36,14 @@ public class Bot : AbstractPlayer {
                 .GetChild().GetComponent<Piece>();
         }
 
-        Debug.Log(TranslateBoard());
+        // Add the current board configuration with the chose movement to the config list.
+        BoardConfiguration bConfig = new BoardConfiguration(TranslateBoard());
+        bConfig.AddMovement(choseMove, ga.AdaptationScore(choseMove));
+        configList.Add(bConfig);
+
+        Debug.Log(bConfig.GetBoardConfiguration());
         //Debug.Log(choseMove.ToString());
+
         base.board.MovePiece(choseMove);
     }
 
@@ -96,7 +104,7 @@ public class Bot : AbstractPlayer {
     /// <summary>
     /// Tranform the current state of the board in a string.
     /// </summary>
-    private string TranslateBoard()
+    public string TranslateBoard()
     {
         string result = "";
         TileHandler tile;
@@ -141,5 +149,10 @@ public class Bot : AbstractPlayer {
         }
 
         return result;
+    }
+
+    public ArrayList GetConfigList()
+    {
+        return configList;
     }
 }

@@ -1,7 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
+using System.Collections;
 
+[Serializable]
 public class KingPiece : Piece {
 
     /// <summary>
@@ -157,7 +157,7 @@ public class KingPiece : Piece {
                     .GetComponent<TileHandler>();
                 while (tile != null && tile.transform.childCount == 0)
                 {
-                    possibleMoves.Add(new Movement( currentPos, tile.getPosition(), enemyPiece ));
+                    possibleMoves.Add(new Movement( currentPos, tile.getPosition(), enemyPiece.GetPosition()));
                     tile = board.GetTile(tile.getRow() + offsetX, tile.getColumn() + offsetY);
                 }
                 break;

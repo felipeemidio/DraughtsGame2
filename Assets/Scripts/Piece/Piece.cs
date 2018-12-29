@@ -1,8 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
+[Serializable]
 abstract public class Piece : MonoBehaviour {
 
     protected bool hasBeenCaptured = false;
@@ -82,7 +83,7 @@ abstract public class Piece : MonoBehaviour {
     {
         foreach (Movement move in path)
         {
-            IntVector2 movePiecePosition = move.getCapturedPiece().GetPosition();
+            IntVector2 movePiecePosition = move.getCapturedPiece();
             if (move.hasCapturedAnEnemy() && 
                 movePiecePosition.x == enemyPos.x && 
                 movePiecePosition.y == enemyPos.y)

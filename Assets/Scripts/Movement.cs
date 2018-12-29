@@ -1,15 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
 
 /**
  * Descibe a movement that can be done in the board.
  */
+[Serializable]
 public class Movement {
 
     IntVector2 originalPosition;
     IntVector2 destinyPosition;
-    Piece capturedPiece;
+    IntVector2 capturedPiece;
 
 
     public Movement(IntVector2 originalPosition, IntVector2 destinyPosition)
@@ -18,7 +17,7 @@ public class Movement {
         this.destinyPosition = destinyPosition;
     }
 
-    public Movement(IntVector2 originalPosition, IntVector2 destinyPosition, Piece capturedPiece)
+    public Movement(IntVector2 originalPosition, IntVector2 destinyPosition, IntVector2 capturedPiece)
     {
         this.originalPosition = originalPosition;
         this.destinyPosition = destinyPosition;
@@ -45,12 +44,12 @@ public class Movement {
         return this.destinyPosition;
     }
 
-    public Piece getCapturedPiece()
+    public IntVector2 getCapturedPiece()
     {
         return this.capturedPiece;
     }
 
-    public void SetCapturedPiece( Piece capturedPiece)
+    public void SetCapturedPiece( IntVector2 capturedPiece)
     {
         this.capturedPiece = capturedPiece;
     }
@@ -60,7 +59,7 @@ public class Movement {
         string result = "from " + originalPosition.ToString() + " to " + destinyPosition.ToString();
         if (hasCapturedAnEnemy())
         {
-            result += " Capturing in " + this.capturedPiece.GetPosition().ToString();
+            result += " Capturing in " + this.capturedPiece.ToString();
         }
 
         return result;

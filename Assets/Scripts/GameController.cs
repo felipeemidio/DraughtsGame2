@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 public class GameController : MonoBehaviour {
     public Text turnText;
@@ -48,10 +50,41 @@ public class GameController : MonoBehaviour {
 
     void Update()
     {
-        // Change to layer turn when press key 'A'.
-        if (Input.GetKeyUp(KeyCode.A) && turn == Turn.enemyTurn)
+        if (Input.GetKeyUp(KeyCode.L))
         {
-            NextTurn();
+            Load();
+        }
+    }
+
+    public void Save(ArrayList list)
+    {
+        BinaryFormatter bf = new BinaryFormatter();
+        FileStream file = File.Create(Application.persistentDataPath + "/gameStorage.dat");
+        /*
+        ArrayList listConfig = new ArrayList();
+        BoardConfiguration bConfig = 
+            new BoardConfiguration("####b##########bb#b#b#b######b#bw##########w#w#w################");
+        bConfig.AddMovement(new Movement(new IntVector2(1, 1), new IntVector2(2, 2)), 1.0f);
+        listConfig.Add(bConfig);
+        */
+        bf.Serialize(file, list);
+        file.Close();
+
+    }
+
+    public void Load()
+    {
+        if(File.Exists(Application.persistentDataPath + "/gameStorage.dat"))
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream file = File.Open(Application.persistentDataPath + "/gameStorage.dat", FileMode.Open);
+            ArrayList list = (ArrayList)bf.Deserialize(file);
+            file.Close();
+
+            foreach(BoardConfiguration conf in list)
+            {
+                Debug.Log(conf.ToString());
+            }
         }
     }
 
@@ -92,8 +125,6 @@ public class GameController : MonoBehaviour {
 
     public void NotifyPlayerEndOfMovement()
     {
-        // Refresh allin case some was destructed.
-        //board.RefreshAllPieces();
         bool isSucessiveCapture = false;
         IsInFinals();
         if (turn == Turn.playerTurn) {
@@ -133,6 +164,10 @@ public class GameController : MonoBehaviour {
         {
             ShowResultPanel("D R A W !");
         }
+        if (isGameOver)
+        {
+            Save(bot.GetConfigList());
+        }
         if(!isSucessiveCapture && !isGameOver)
             this.NextTurn();
     }
@@ -149,7 +184,6 @@ public class GameController : MonoBehaviour {
             (!absEnemy.SomePieceCanCapture(enemiesPieces) &&
             !absEnemy.SomePieceCanWalk(enemiesPieces)))
         {
-            isGameOver = true;
             return true;
         }
         return false;
@@ -193,6 +227,7 @@ public class GameController : MonoBehaviour {
     /// </summary>
     private void ShowResultPanel(string text)
     {
+        isGameOver = true;
         if (resultPanel.gameObject.activeSelf)
             return;
         resultPanel.gameObject.SetActive(true);

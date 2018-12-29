@@ -1,7 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
+[Serializable]
 public class ManPiece : Piece {
     
     protected int forward;
@@ -18,25 +19,25 @@ public class ManPiece : Piece {
         {
             possibleCaptureMovents.Add(new Movement(currentPos,
                 new IntVector2(currentPos.x + 2, currentPos.y + 2),
-                base.board.GetTile(currentPos.x + 1, currentPos.y + 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
+                new IntVector2(currentPos.x + 1, currentPos.y + 1)));
         }
         if (CanCapture(1, -1, currentPos) && !base.AlreadyCaptured(path, new IntVector2(currentPos.x + 1, currentPos.y - 1)))
         {
             possibleCaptureMovents.Add(new Movement(currentPos,
                 new IntVector2(currentPos.x + 2, currentPos.y - 2),
-                base.board.GetTile(currentPos.x + 1, currentPos.y - 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
+                new IntVector2(currentPos.x + 1, currentPos.y - 1)));
         }
         if (CanCapture(-1, 1, currentPos) && !base.AlreadyCaptured(path, new IntVector2(currentPos.x - 1, currentPos.y + 1)))
         {
             possibleCaptureMovents.Add(new Movement(currentPos,
                 new IntVector2(currentPos.x - 2, currentPos.y + 2),
-                base.board.GetTile(currentPos.x - 1, currentPos.y + 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
+                new IntVector2(currentPos.x - 1, currentPos.y + 1)));
         }
         if (CanCapture(-1, -1, currentPos) && !base.AlreadyCaptured(path, new IntVector2(currentPos.x - 1, currentPos.y - 1)))
         {
             possibleCaptureMovents.Add(new Movement(currentPos,
                 new IntVector2(currentPos.x - 2, currentPos.y - 2),
-                base.board.GetTile(currentPos.x - 1, currentPos.y - 1).transform.GetChild(0).gameObject.GetComponent<Piece>()));
+                new IntVector2(currentPos.x - 1, currentPos.y - 1)));
         }
 
         return possibleCaptureMovents;

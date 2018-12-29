@@ -169,13 +169,16 @@ public class Board : MonoBehaviour {
         pieceToMove = this.GetTile (move.getOriginalPosition())
             .transform.GetChild(0).GetComponent<Piece>();
 
-        // Get the piece that will be captured if exists.
-        Piece pieceToBeCaptured = move.getCapturedPiece();
-
-        // It is a capture movement?
-        if (pieceToBeCaptured != null)
+        if (move.hasCapturedAnEnemy())
         {
-            pieceToBeCaptured.Capture();
+            // Get the piece that will be captured if exists.
+            GameObject pieceToBeCaptured = GetTile(move.getCapturedPiece()).GetChild();
+
+            // It is a capture movement?
+            if (pieceToBeCaptured != null)
+            {
+                pieceToBeCaptured.GetComponent<Piece>().Capture();
+            }
         }
 
         /*
