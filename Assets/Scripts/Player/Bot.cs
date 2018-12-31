@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,7 +10,11 @@ public class Bot : AbstractPlayer {
     private List<BoardConfiguration> historic;
     private Movement lastMovement;
 
-    //private readonly int MAX_DEPTH = 6;
+    private bool useHistoric = false;
+    private float biggestAdaptation;
+    private List<Movement> bestPath;
+
+    private readonly int MAX_DEPTH = 6;
 
     /**
      * CONSTRUCTOR
@@ -27,9 +32,11 @@ public class Bot : AbstractPlayer {
     /// </summary>
     public override void Play()
     {
+        biggestAdaptation = -1000f;
         string configuration = TranslateBoard();
-        if(configList.Count >= 1)
+        if(configList.Count >= 1 && !useHistoric)
         {
+            Debug.Log("Last Movement: " + lastMovement);
             configList[configList.Count - 1].GetMovementConfigurationWithMove(lastMovement)
                 .AddResults(configuration);
         }
@@ -49,17 +56,113 @@ public class Bot : AbstractPlayer {
         }
 
         // Add the current board configuration with the chose movement to the config list.
-        BoardConfiguration bConfig = new BoardConfiguration(TranslateBoard());
+        BoardConfiguration bConfig = new BoardConfiguration(configuration);
         bConfig.AddMovement(choseMove, ga.AdaptationScore(choseMove));
         configList.Add(bConfig);
 
-        //TODO: Make a function call to find the best adaptation in the historic.
+        //Make a function call to find the best adaptation in the historic.
+        Movement moveByHistoric = ChoseMovementFromHistoric(configuration);
+        
+        if( ga.AdaptationScore(choseMove)/2 < biggestAdaptation)
+        {
+            //Debug.Log("select historic movement");
+            choseMove = moveByHistoric;
+            useHistoric = true;
+            
+        }
+        else
+        {
+            //Debug.Log("select current best movement");
+            useHistoric = false;
+        }
 
-        Debug.Log(bConfig.GetBoardConfiguration());
         //Debug.Log(choseMove.ToString());
-
         lastMovement = choseMove;
         base.board.MovePiece(choseMove);
+    }
+
+    private Movement ChoseMovementFromHistoric(string configuration)
+    {
+        BoardConfiguration bc = FindBoardConfiguration(configuration);
+        float adaptation = -1000f;
+        Movement bestMovement = null;
+        if (bc == null)
+        {
+            return bestMovement;
+        }
+
+        foreach (MovementConfiguration moveConf in bc.GetMovementsConfigurations())
+        {
+            if (moveConf.GetResults().Count == 0)
+            {
+                adaptation = moveConf.GetAdaptation();
+                if (adaptation > biggestAdaptation)
+                {
+                    biggestAdaptation = adaptation;
+                    bestMovement = moveConf.GetMove();
+                }
+            }
+            foreach (string result in moveConf.GetResults())
+            {
+
+                adaptation = MeanAdaptation(result, 0f, 1);
+                if(adaptation > biggestAdaptation)
+                {
+                    biggestAdaptation = adaptation;
+                    bestMovement = moveConf.GetMove();
+                }
+            }
+        }
+        //Debug.Log("Best Adaptation: " + biggestAdaptation);
+
+        return bestMovement;
+    }
+
+    private float MeanAdaptation(string configuration, float sum, int depth)
+    {
+
+        BoardConfiguration bc = FindBoardConfiguration(configuration);
+        if (bc == null || depth > MAX_DEPTH )
+            return sum/depth;
+
+
+        float betterAdaptation = -1000f;
+
+        foreach(MovementConfiguration mc in bc.GetMovementsConfigurations())
+        {
+            if(mc.GetResults().Count == 0 &&
+                betterAdaptation < (sum + mc.GetAdaptation()) / (depth + 1))
+            {
+                betterAdaptation = (sum + mc.GetAdaptation()) / (depth + 1);
+            }
+
+            foreach (string result in mc.GetResults())
+            {
+
+                float adaptation = MeanAdaptation(result, sum + mc.GetAdaptation(), depth + 1);
+                if (adaptation > betterAdaptation)
+                {
+                    betterAdaptation = adaptation;
+                }
+            }
+        }
+
+        return betterAdaptation;
+    }
+
+    private BoardConfiguration FindBoardConfiguration(string configuration)
+    {
+        BoardConfiguration bc = null;
+        foreach (BoardConfiguration boardConf in historic)
+        {
+            if (boardConf.GetBoardConfiguration().Equals(configuration))
+            {
+                bc = boardConf;
+                break;
+            }
+        }
+
+        return bc;
     }
 
 

@@ -32,11 +32,10 @@ public class GameController : MonoBehaviour {
         else
             Debug.LogError("Couldn't find the panel object.");
 
-        //Load();
         historic = new List<BoardConfiguration>();
+        Load();
         bot = new Bot(historic);
         player = new Player();
-        historic = new List<BoardConfiguration>();
         turnsKingMoving = 0;
     }
 
@@ -65,12 +64,16 @@ public class GameController : MonoBehaviour {
         }
         if (Input.GetKeyUp(KeyCode.C))
         {
-            Clear();
+            //Clear();
         }
 
         if (Input.GetKeyUp(KeyCode.T))
         {
             Test();
+        }
+        if (Input.GetKeyUp(KeyCode.P))
+        {
+            Debug.Log("historic size: " + historic.Count);
         }
     }
 
@@ -121,6 +124,8 @@ public class GameController : MonoBehaviour {
         // Create a File.
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Create(Application.persistentDataPath + "/gameStorage.dat");
+
+        Debug.Log("historic size: " + historic.Count);
 
         // Add the new board configuration list in the historic.
         bool existsConf;
@@ -244,7 +249,7 @@ public class GameController : MonoBehaviour {
             // Verify if the player won the game.
             if (WinGame(bot, this.board.GetEnemyPieces()) && resultPanel != null)
             {
-                finalValue = -20f;
+                finalValue = -30f;
                 ShowResultPanel("Y O U   W O N !");
             }
         }
@@ -260,7 +265,7 @@ public class GameController : MonoBehaviour {
             // Verify if the bot won the game.
             if (WinGame(player, this.board.GetPlayerPieces()))
             {
-                finalValue = 20f;
+                finalValue = 30f;
                 ShowResultPanel("Y O U   L O S E !");
             }
         }
@@ -270,7 +275,7 @@ public class GameController : MonoBehaviour {
 
         if(turnsKingMoving >= 20 || finalCounter >= 10)
         {
-            finalValue = 5f;
+            finalValue = 10f;
             ShowResultPanel("D R A W !");
         }
         if (isGameOver)
