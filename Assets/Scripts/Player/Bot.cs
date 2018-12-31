@@ -1,19 +1,25 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Bot : AbstractPlayer {
 
     private MyGeneticAlgorithm ga;
-    private ArrayList configList;
+    private List<BoardConfiguration> configList;
+    private List<BoardConfiguration> historic;
+    private Movement lastMovement;
+
+    //private readonly int MAX_DEPTH = 6;
 
     /**
      * CONSTRUCTOR
      */
-    public Bot()
+    public Bot(List<BoardConfiguration> historic)
     {
+        this.historic = historic;
         base.board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
         ga = new MyGeneticAlgorithm(base.board);
-        configList = new ArrayList();
+        configList = new List<BoardConfiguration>();
     }
 
     /// <summary>
@@ -21,6 +27,12 @@ public class Bot : AbstractPlayer {
     /// </summary>
     public override void Play()
     {
+        string configuration = TranslateBoard();
+        if(configList.Count >= 1)
+        {
+            configList[configList.Count - 1].GetMovementConfigurationWithMove(lastMovement)
+                .AddResults(configuration);
+        }
 
         Movement choseMove;
         // Select the same piece if it's playing again.
@@ -41,9 +53,12 @@ public class Bot : AbstractPlayer {
         bConfig.AddMovement(choseMove, ga.AdaptationScore(choseMove));
         configList.Add(bConfig);
 
+        //TODO: Make a function call to find the best adaptation in the historic.
+
         Debug.Log(bConfig.GetBoardConfiguration());
         //Debug.Log(choseMove.ToString());
 
+        lastMovement = choseMove;
         base.board.MovePiece(choseMove);
     }
 
@@ -57,6 +72,7 @@ public class Bot : AbstractPlayer {
         ArrayList botPieces = base.board.GetEnemyPieces();
         ArrayList possibleMoves = this.ga.GenerateMutations(this, botPieces);
 
+        // Select the movement with the biggest adaptation.
         int biggestAdaptation = -100;
         Movement bestMovement = null;
         foreach (Movement move in possibleMoves)
@@ -151,14 +167,14 @@ public class Bot : AbstractPlayer {
         return result;
     }
 
-    public ArrayList GetConfigList()
+    public List<BoardConfiguration> GetConfigList()
     {
         return configList;
     }
 
     public void SetLastMovement(float value)
     {
-        BoardConfiguration bc = (BoardConfiguration) configList[configList.Count - 1];
+        BoardConfiguration bc = configList[configList.Count - 1];
         bc.SetLastValue(value);
         configList[configList.Count - 1] = bc;
     }

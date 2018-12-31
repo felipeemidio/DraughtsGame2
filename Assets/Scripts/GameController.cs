@@ -22,7 +22,7 @@ public class GameController : MonoBehaviour {
     private Board board;
     private Bot bot;
     private Player player;
-    private ArrayList historic;
+    private List<BoardConfiguration> historic;
 
     void Awake()
     {
@@ -31,9 +31,12 @@ public class GameController : MonoBehaviour {
             resultPanel.gameObject.SetActive(false);
         else
             Debug.LogError("Couldn't find the panel object.");
-        bot = new Bot();
+
+        //Load();
+        historic = new List<BoardConfiguration>();
+        bot = new Bot(historic);
         player = new Player();
-        historic = new ArrayList();
+        historic = new List<BoardConfiguration>();
         turnsKingMoving = 0;
     }
 
@@ -54,7 +57,7 @@ public class GameController : MonoBehaviour {
     {
         if (Input.GetKeyUp(KeyCode.S))
         {
-            Save(new ArrayList());
+            Save(new List<BoardConfiguration>());
         }
         if (Input.GetKeyUp(KeyCode.L))
         {
@@ -87,7 +90,7 @@ public class GameController : MonoBehaviour {
 
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Open(Application.persistentDataPath + "/gameStorage.dat", FileMode.Open);
-        historic = (ArrayList)bf.Deserialize(file);
+        historic = (List<BoardConfiguration>)bf.Deserialize(file);
         file.Close();
 
         bool result = false;
@@ -98,7 +101,9 @@ public class GameController : MonoBehaviour {
             {
                 result = true;
                 Debug.Log("find: " + bc.ToString());
-                Debug.Log("movement contains: " + bc.GetMovements().Contains(foo.GetMovements()[0]));
+                
+                Debug.Log("movement contains: " + 
+                    bc.HasMovementConfiguration(foo.GetMovementsConfigurations()[0]));
             }
         }
 
@@ -110,7 +115,7 @@ public class GameController : MonoBehaviour {
     /// <summary>
     /// Increment and save the game historic in the 'gameStorage' file.
     /// </summary>
-    public void Save(ArrayList list)
+    public void Save(List<BoardConfiguration> list)
     {
         Debug.Log("Save Called.");
         // Create a File.
@@ -128,10 +133,10 @@ public class GameController : MonoBehaviour {
                 if (historicConfig.Equals(config))
                 {
                     existsConf = true;
-                    if (!historicConfig.GetMovements().Contains(config.GetMovements()[0]))
+                    if (!historicConfig.HasMovementConfiguration(config.GetMovementsConfigurations()[0]))
                     {
-                        historicConfig.AddMovement((Movement)config.GetMovements()[0],
-                        (float)config.GetValuesByMovement()[0]);
+                        historicConfig.AddMovement(config.GetMovementsConfigurations()[0].GetMove(),
+                        config.GetMovementsConfigurations()[0].GetAdaptation());
                     } 
                 }
             }
@@ -156,7 +161,7 @@ public class GameController : MonoBehaviour {
         {
             BinaryFormatter bf = new BinaryFormatter();
             FileStream file = File.Open(Application.persistentDataPath + "/gameStorage.dat", FileMode.Open);
-            historic = (ArrayList) bf.Deserialize(file);
+            historic = (List<BoardConfiguration>) bf.Deserialize(file);
             file.Close();
 
             if(historic == null)
@@ -183,7 +188,7 @@ public class GameController : MonoBehaviour {
         Debug.Log("Clear Called.");
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Create(Application.persistentDataPath + "/gameStorage.dat");
-        bf.Serialize(file, new ArrayList());
+        bf.Serialize(file, new List<BoardConfiguration>());
         file.Close();
 
     }
@@ -351,5 +356,10 @@ public class GameController : MonoBehaviour {
         if (turn == Turn.playerTurn)
             return true;
         return false;
+    }
+
+    public List<BoardConfiguration> getHistoric()
+    {
+        return historic;
     }
 }
