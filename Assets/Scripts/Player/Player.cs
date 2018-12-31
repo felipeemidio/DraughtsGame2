@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : AbstractPlayer {
@@ -78,8 +77,7 @@ public class Player : AbstractPlayer {
         }
         foreach (Movement move in list)
         {
-            if (move.getDestinyPosition().x == originalPos.x && 
-                move.getDestinyPosition().y == originalPos.y)
+            if ( originalPos.Equals(move.getDestinyPosition()) )
             {
                 return move;
             }

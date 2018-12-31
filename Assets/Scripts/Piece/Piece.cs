@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-[Serializable]
 abstract public class Piece : MonoBehaviour {
 
     protected bool hasBeenCaptured = false;

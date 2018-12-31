@@ -22,6 +22,7 @@ public class GameController : MonoBehaviour {
     private Board board;
     private Bot bot;
     private Player player;
+    private ArrayList historic;
 
     void Awake()
     {
@@ -32,6 +33,7 @@ public class GameController : MonoBehaviour {
             Debug.LogError("Couldn't find the panel object.");
         bot = new Bot();
         player = new Player();
+        historic = new ArrayList();
         turnsKingMoving = 0;
     }
 
@@ -50,48 +52,146 @@ public class GameController : MonoBehaviour {
 
     void Update()
     {
+        if (Input.GetKeyUp(KeyCode.S))
+        {
+            Save(new ArrayList());
+        }
         if (Input.GetKeyUp(KeyCode.L))
         {
             Load();
         }
+        if (Input.GetKeyUp(KeyCode.C))
+        {
+            Clear();
+        }
+
+        if (Input.GetKeyUp(KeyCode.T))
+        {
+            Test();
+        }
     }
 
+    /// <summary>
+    /// Random function to write some persitance tests in it.
+    /// </summary>
+    /// <remarks>
+    /// Only used for Debug Purpose.
+    /// </remarks>
+    public void Test()
+    {
+        BoardConfiguration foo =
+                new BoardConfiguration("b#b###################w######w####B###b#########W########w###w##");
+        Movement movement = new Movement(new IntVector2(7, 1),
+            new IntVector2(3, 5), new IntVector2(5, 3));
+        foo.AddMovement(movement, 5f);
+
+        BinaryFormatter bf = new BinaryFormatter();
+        FileStream file = File.Open(Application.persistentDataPath + "/gameStorage.dat", FileMode.Open);
+        historic = (ArrayList)bf.Deserialize(file);
+        file.Close();
+
+        bool result = false;
+        bool result2 = false;
+        foreach (BoardConfiguration bc in historic)
+        {
+            if (bc.Equals(foo))
+            {
+                result = true;
+                Debug.Log("find: " + bc.ToString());
+                Debug.Log("movement contains: " + bc.GetMovements().Contains(foo.GetMovements()[0]));
+            }
+        }
+
+        result2 = historic.Contains(foo);
+
+        Debug.Log("result for: " + result + "\nresult contain: " + result2);
+    }
+
+    /// <summary>
+    /// Increment and save the game historic in the 'gameStorage' file.
+    /// </summary>
     public void Save(ArrayList list)
     {
+        Debug.Log("Save Called.");
+        // Create a File.
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Create(Application.persistentDataPath + "/gameStorage.dat");
-        /*
-        ArrayList listConfig = new ArrayList();
-        BoardConfiguration bConfig = 
-            new BoardConfiguration("####b##########bb#b#b#b######b#bw##########w#w#w################");
-        bConfig.AddMovement(new Movement(new IntVector2(1, 1), new IntVector2(2, 2)), 1.0f);
-        listConfig.Add(bConfig);
-        */
-        bf.Serialize(file, list);
+
+        // Add the new board configuration list in the historic.
+        bool existsConf;
+        foreach (BoardConfiguration config in list)
+        {
+            existsConf = false;
+            foreach(BoardConfiguration historicConfig in historic)
+            {
+                // See if it's has a new Movement for that existing configuration.
+                if (historicConfig.Equals(config))
+                {
+                    existsConf = true;
+                    if (!historicConfig.GetMovements().Contains(config.GetMovements()[0]))
+                    {
+                        historicConfig.AddMovement((Movement)config.GetMovements()[0],
+                        (float)config.GetValuesByMovement()[0]);
+                    } 
+                }
+            }
+            if (!existsConf)
+            {
+                historic.Add(config);
+            }
+        }
+
+        bf.Serialize(file, historic);
         file.Close();
 
     }
 
+    /// <summary>
+    /// Load the game historic in the 'gameStorage' file.
+    /// </summary>
     public void Load()
     {
-        if(File.Exists(Application.persistentDataPath + "/gameStorage.dat"))
+        Debug.Log("Load Called.");
+        if (File.Exists(Application.persistentDataPath + "/gameStorage.dat"))
         {
             BinaryFormatter bf = new BinaryFormatter();
             FileStream file = File.Open(Application.persistentDataPath + "/gameStorage.dat", FileMode.Open);
-            ArrayList list = (ArrayList)bf.Deserialize(file);
+            historic = (ArrayList) bf.Deserialize(file);
             file.Close();
 
-            foreach(BoardConfiguration conf in list)
+            if(historic == null)
+            {
+                Debug.Log("historico nulo.");
+                return;
+            }
+
+            foreach(BoardConfiguration conf in historic)
             {
                 Debug.Log(conf.ToString());
             }
         }
     }
 
-    /*
-     * Change the turn between the enemy and the player.
-     * Also update the UI text.
-     */
+    /// <summary>
+    /// Clear the game historic in the 'gameStorage' file.
+    /// </summary>
+    /// <remarks>
+    /// Only used for Debug Purpose.
+    /// </remarks>
+    public void Clear()
+    {
+        Debug.Log("Clear Called.");
+        BinaryFormatter bf = new BinaryFormatter();
+        FileStream file = File.Create(Application.persistentDataPath + "/gameStorage.dat");
+        bf.Serialize(file, new ArrayList());
+        file.Close();
+
+    }
+
+    /// <summary>
+    /// Change the turn between the enemy and the player.
+    /// Also update the UI text.
+    /// </summary>
     public void NextTurn()
     {
         board.RefreshAllPieces();
@@ -126,6 +226,7 @@ public class GameController : MonoBehaviour {
     public void NotifyPlayerEndOfMovement()
     {
         bool isSucessiveCapture = false;
+        float finalValue = -100f;
         IsInFinals();
         if (turn == Turn.playerTurn) {
             // See if just move a king piece
@@ -138,6 +239,7 @@ public class GameController : MonoBehaviour {
             // Verify if the player won the game.
             if (WinGame(bot, this.board.GetEnemyPieces()) && resultPanel != null)
             {
+                finalValue = -20f;
                 ShowResultPanel("Y O U   W O N !");
             }
         }
@@ -153,6 +255,7 @@ public class GameController : MonoBehaviour {
             // Verify if the bot won the game.
             if (WinGame(player, this.board.GetPlayerPieces()))
             {
+                finalValue = 20f;
                 ShowResultPanel("Y O U   L O S E !");
             }
         }
@@ -162,22 +265,27 @@ public class GameController : MonoBehaviour {
 
         if(turnsKingMoving >= 20 || finalCounter >= 10)
         {
+            finalValue = 5f;
             ShowResultPanel("D R A W !");
         }
         if (isGameOver)
         {
+            if(finalValue > -100f)
+                bot.SetLastMovement(finalValue);
             Save(bot.GetConfigList());
         }
         if(!isSucessiveCapture && !isGameOver)
             this.NextTurn();
     }
 
-    /**
-     * Verify the winning condition given a player.
-     * 
-     * 1- the player hasn't pieces.
-     * 2- the player can't move the pieces his has.
-     */
+    /// <summary>
+    /// Verify the winning condition given a player.
+    /// </summary>
+    /// <remarks>
+    /// #### CONDITIONS ####
+    /// 1- the player hasn't pieces.
+    /// 2- the player can't move the pieces his has.
+    /// </remarks>
     private bool WinGame(AbstractPlayer absEnemy, ArrayList enemiesPieces)
     {
         if (enemiesPieces.Count == 0 ||

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 
-[Serializable]
 public class KingPiece : Piece {
 
     /// <summary>

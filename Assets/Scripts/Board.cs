@@ -345,7 +345,7 @@ public class Board : MonoBehaviour {
         }
         foreach (Movement move in list)
         {
-            if(move.getDestinyPosition().x == originalPos.x && move.getDestinyPosition().y == originalPos.y)
+            if(originalPos.Equals(move.getDestinyPosition()))
             {
                 return move;
             }

@@ -1,6 +1,4 @@
-﻿using System;
-
-[Serializable]
+﻿
 public class EnemyManPiece : ManPiece {
 
     public override void Start ()

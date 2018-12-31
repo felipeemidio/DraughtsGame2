@@ -50,20 +50,17 @@ public class MyGeneticAlgorithm {
     public int AdaptationScore(Movement move)
     {
         int score = 1;
-        /*
         if (move.hasCapturedAnEnemy())
-        {
             score = 3;
-        }
-        */
+
         if (CanLostPiece(move))
         {
-            score = -5;
+            score += -5;
         }
         else if (CanProtectAFriend(move))
         {
             //Debug.Log("Can protect with move " + move.ToString());
-            score = 2;
+            score += 2;
         }
 
         return score;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 /**
  * Descibe a movement that can be done in the board.
@@ -63,5 +64,23 @@ public class Movement {
         }
 
         return result;
+    }
+
+    public override bool Equals(object obj)
+    {
+        Movement movement = obj as Movement;
+        return movement != null &&
+               EqualityComparer<IntVector2>.Default.Equals(originalPosition, movement.originalPosition) &&
+               EqualityComparer<IntVector2>.Default.Equals(destinyPosition, movement.destinyPosition) &&
+               EqualityComparer<IntVector2>.Default.Equals(capturedPiece, movement.capturedPiece);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 869111550;
+        hashCode = hashCode * -1521134295 + EqualityComparer<IntVector2>.Default.GetHashCode(originalPosition);
+        hashCode = hashCode * -1521134295 + EqualityComparer<IntVector2>.Default.GetHashCode(destinyPosition);
+        hashCode = hashCode * -1521134295 + EqualityComparer<IntVector2>.Default.GetHashCode(capturedPiece);
+        return hashCode;
     }
 }

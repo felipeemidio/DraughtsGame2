@@ -155,4 +155,11 @@ public class Bot : AbstractPlayer {
     {
         return configList;
     }
+
+    public void SetLastMovement(float value)
+    {
+        BoardConfiguration bc = (BoardConfiguration) configList[configList.Count - 1];
+        bc.SetLastValue(value);
+        configList[configList.Count - 1] = bc;
+    }
 }
