@@ -36,7 +36,6 @@ public class Bot : AbstractPlayer {
         string configuration = TranslateBoard();
         if(configList.Count >= 1 && !useHistoric)
         {
-            Debug.Log("Last Movement: " + lastMovement);
             configList[configList.Count - 1].GetMovementConfigurationWithMove(lastMovement)
                 .AddResults(configuration);
         }
@@ -60,32 +59,43 @@ public class Bot : AbstractPlayer {
         bConfig.AddMovement(choseMove, ga.AdaptationScore(choseMove));
         configList.Add(bConfig);
 
-        //Make a function call to find the best adaptation in the historic.
+        // Make a function call to find the best adaptation in the historic.
         Movement moveByHistoric = ChoseMovementFromHistoric(configuration);
         
+        // Choose between use the historic choice or not.
         if( ga.AdaptationScore(choseMove)/2 < biggestAdaptation)
         {
-            //Debug.Log("select historic movement");
+            Debug.Log("Select historic movement");
             choseMove = moveByHistoric;
             useHistoric = true;
             
         }
         else
         {
-            //Debug.Log("select current best movement");
+            if(moveByHistoric != null)
+                Debug.Log("Historic is a bad choice");
+            else
+                Debug.Log("New configuration");
+
             useHistoric = false;
         }
-
-        //Debug.Log(choseMove.ToString());
+        
+        // Make the movement.
+        Debug.Log("Chosed Movement: " + choseMove.ToString());
         lastMovement = choseMove;
         base.board.MovePiece(choseMove);
     }
 
+    /// <summary>
+    /// Return the best movement by the historic.
+    /// </summary>
     private Movement ChoseMovementFromHistoric(string configuration)
     {
-        BoardConfiguration bc = FindBoardConfiguration(configuration);
         float adaptation = -1000f;
         Movement bestMovement = null;
+        BoardConfiguration bc = FindBoardConfiguration(configuration);
+
+        // Return null if the configuration doesn't exists.
         if (bc == null)
         {
             return bestMovement;
@@ -93,6 +103,7 @@ public class Bot : AbstractPlayer {
 
         foreach (MovementConfiguration moveConf in bc.GetMovementsConfigurations())
         {
+            // if this configuration do not end up with another, return its own adaptation.
             if (moveConf.GetResults().Count == 0)
             {
                 adaptation = moveConf.GetAdaptation();
@@ -102,6 +113,7 @@ public class Bot : AbstractPlayer {
                     bestMovement = moveConf.GetMove();
                 }
             }
+            // Get the best mean adaptation of each result.
             foreach (string result in moveConf.GetResults())
             {
 
@@ -118,24 +130,30 @@ public class Bot : AbstractPlayer {
         return bestMovement;
     }
 
+    /// <summary>
+    /// Return the bigger mean in a tree of a Given depth.
+    /// This function make a recursive call.
+    /// </summary>
     private float MeanAdaptation(string configuration, float sum, int depth)
     {
 
         BoardConfiguration bc = FindBoardConfiguration(configuration);
+        // Stop when the configuration doesn't exists or reached the max depth.
         if (bc == null || depth > MAX_DEPTH )
             return sum/depth;
 
-
+        // Select the best adaptation of the possible movements ever tried.
         float betterAdaptation = -1000f;
-
         foreach(MovementConfiguration mc in bc.GetMovementsConfigurations())
         {
-            if(mc.GetResults().Count == 0 &&
+            // if this configuration do not end up with another, return the mean.
+            if (mc.GetResults().Count == 0 &&
                 betterAdaptation < (sum + mc.GetAdaptation()) / (depth + 1))
             {
                 betterAdaptation = (sum + mc.GetAdaptation()) / (depth + 1);
             }
 
+            // Get the best mean adaptation of each result.
             foreach (string result in mc.GetResults())
             {
 
@@ -150,6 +168,9 @@ public class Bot : AbstractPlayer {
         return betterAdaptation;
     }
 
+    /// <summary>
+    /// Find the board configuration in the historic if exists or return null if doesn't.
+    /// </summary>
     private BoardConfiguration FindBoardConfiguration(string configuration)
     {
         BoardConfiguration bc = null;
@@ -270,15 +291,21 @@ public class Bot : AbstractPlayer {
         return result;
     }
 
-    public List<BoardConfiguration> GetConfigList()
-    {
-        return configList;
-    }
-
+    /// <summary>
+    /// Change the adaptation of the last configuration stored. 
+    /// </summary>
     public void SetLastMovement(float value)
     {
         BoardConfiguration bc = configList[configList.Count - 1];
         bc.SetLastValue(value);
         configList[configList.Count - 1] = bc;
+    }
+
+    /// <summary>
+    /// Return the current list of BoardConfigurations.
+    /// </summary>
+    public List<BoardConfiguration> GetConfigList()
+    {
+        return configList;
     }
 }

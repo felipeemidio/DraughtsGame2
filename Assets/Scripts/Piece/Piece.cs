@@ -11,9 +11,13 @@ abstract public class Piece : MonoBehaviour {
     protected ArrayList movementsTree;
     protected Board board;
 
-    public virtual void Start()
+    public void Awake()
     {
         board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
+    }
+
+    public virtual void Start()
+    {
         this.SetCurrentPosition();
     }
 

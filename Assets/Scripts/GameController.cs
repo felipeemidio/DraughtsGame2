@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour {
     public Text turnText;
@@ -45,11 +46,18 @@ public class GameController : MonoBehaviour {
     void Start()
     {
         board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board> ();
-        this.NextTurn();
+        StartCoroutine(LateStart(0.5f));
+        
         if (turnText == null)
         {
             Debug.LogError("Turn Text not Found.");
         }
+    }
+
+    IEnumerator LateStart(float waitTime)
+    {
+        yield return new WaitForSeconds(waitTime);
+        this.NextTurn();
     }
 
     void Update()
@@ -64,7 +72,7 @@ public class GameController : MonoBehaviour {
         }
         if (Input.GetKeyUp(KeyCode.C))
         {
-            //Clear();
+            Clear();
         }
 
         if (Input.GetKeyUp(KeyCode.T))
@@ -125,8 +133,6 @@ public class GameController : MonoBehaviour {
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Create(Application.persistentDataPath + "/gameStorage.dat");
 
-        Debug.Log("historic size: " + historic.Count);
-
         // Add the new board configuration list in the historic.
         bool existsConf;
         foreach (BoardConfiguration config in list)
@@ -153,7 +159,6 @@ public class GameController : MonoBehaviour {
 
         bf.Serialize(file, historic);
         file.Close();
-
     }
 
     /// <summary>
@@ -169,16 +174,22 @@ public class GameController : MonoBehaviour {
             historic = (List<BoardConfiguration>) bf.Deserialize(file);
             file.Close();
 
+            /*
             if(historic == null)
             {
-                Debug.Log("historico nulo.");
+                Debug.Log("historic null.");
                 return;
+            }
+            else
+            {
+                Debug.Log("historic size: " + historic.Count);
             }
 
             foreach(BoardConfiguration conf in historic)
             {
                 Debug.Log(conf.ToString());
             }
+            */
         }
     }
 
@@ -209,7 +220,6 @@ public class GameController : MonoBehaviour {
         {
             turn = Turn.enemyTurn;
             turnText.text = "ENEMY'S TURN";
-            //bot.Play();
             StartCoroutine(BotPlay());
 
         }

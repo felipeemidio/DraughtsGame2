@@ -57,9 +57,12 @@ public class MyGeneticAlgorithm {
         {
             score += -5;
         }
+        else if (IsProtectingAFriend(move))
+        {
+            score -= 2;
+        }
         else if (CanProtectAFriend(move))
         {
-            //Debug.Log("Can protect with move " + move.ToString());
             score += 2;
         }
 
@@ -73,29 +76,34 @@ public class MyGeneticAlgorithm {
     {
         Transform pieceT = null;
         Transform originalParent = null;
+        bool result = false;
+        
+        // Retire the piece to be captured of the board.
         if (move.hasCapturedAnEnemy())
         {
             pieceT = board.GetTile(move.getCapturedPiece()).GetChild().transform;
-            // Retire the current piece of the board.
             originalParent = pieceT.parent;
             Transform overlay = GameObject.FindGameObjectWithTag("OverLay").transform;
             pieceT.SetParent(overlay);
         }
 
+        // See if has a blue piece in the corners or 
+        // the movement go to the extreme sides of the board.
         IntVector2 pos = move.getDestinyPosition();
-        if (this.HasABluePiece(pos, 1, 1) ||
+        if ((pos.y != 1 && pos.y != 8) &&
+            (this.HasABluePiece(pos, 1, 1) || 
             this.HasABluePiece(pos, -1, 1) ||
-            this.HasABluePiece(pos, 1, -1) ||
-            this.HasABluePiece(pos, -1, -1))
+            this.HasABluePiece(pos, 1, -1) || 
+            this.HasABluePiece(pos, -1, -1)))
         {
-            if (move.hasCapturedAnEnemy())
-                pieceT.SetParent(originalParent);
-            return true;
+            result = true;
         }
 
+        // Put the piece to be captured back to the board.
         if (move.hasCapturedAnEnemy())
             pieceT.SetParent(originalParent);
-        return false;
+
+        return result;
     }
 
     /// <summary>
@@ -124,7 +132,10 @@ public class MyGeneticAlgorithm {
         }
         return false;
     }
-    
+
+    /// <summary>
+    /// Return if there is a piece with a given tag in the given position.
+    /// </summary>
     private bool HasPieceWithTag( IntVector2 position, string tag)
     {
         TileHandler tile = this.board.GetTile(position); 
@@ -134,7 +145,10 @@ public class MyGeneticAlgorithm {
         }
         return false;
     }
-    
+
+    /// <summary>
+    /// Return if there is a king piece with given in a given direction by the given position.
+    /// </summary>
     private bool HasKingWithTagByDirection(IntVector2 position, string tag, int offsetX, int offsetY)
     {
 
@@ -174,6 +188,9 @@ public class MyGeneticAlgorithm {
         return false;
     }
 
+    /// <summary>
+    /// Return if a movement can protect a friend.
+    /// </summary>
     private bool CanProtectAFriend(Movement move)
     {
         
@@ -187,9 +204,27 @@ public class MyGeneticAlgorithm {
         return false;
     }
 
+    /// <summary>
+    /// Return if the current position is protecting a friend.
+    /// </summary>
+    private bool IsProtectingAFriend(Movement move)
+    {
+        if (this.IsProtectingAFriendInDirection(move, 1, 1) ||
+            this.IsProtectingAFriendInDirection(move, 1, -1) ||
+            this.IsProtectingAFriendInDirection(move, -1, 1) ||
+            this.IsProtectingAFriendInDirection(move, -1, -1))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Return if a movement can protect a friend in a given direction.
+    /// </summary>
     private bool CanProtectAFriendInDirection(Movement move, int OffsetX, int OffsetY)
     {
-
+        // Do not analyse the direction the player is coming.
         IntVector2 pos = move.getDestinyPosition();
         if (-OffsetX == pos.x - move.getOriginalPosition().x && 
            -OffsetY == pos.y - move.getOriginalPosition().y)
@@ -203,6 +238,24 @@ public class MyGeneticAlgorithm {
         {
             return true;
         }
+        return false;
+    }
+
+    /// <summary>
+    /// Return if the current position is protecting a friend in a given direction.
+    /// </summary>
+    private bool IsProtectingAFriendInDirection(Movement move, int offsetX, int offsetY)
+    {
+        // Do not analyse the direction the player is coming.
+        IntVector2 pos = move.getOriginalPosition();
+
+        IntVector2 nextPosition = new IntVector2(pos.x + offsetX, pos.y + offsetY);
+        if (this.HasPieceWithTag(nextPosition, "WhitePiece") &&
+            this.HasABluePiece(nextPosition, offsetX, offsetY))
+        {
+            return true;
+        }
+
         return false;
     }
 }

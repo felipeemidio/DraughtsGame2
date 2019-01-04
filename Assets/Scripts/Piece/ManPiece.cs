@@ -64,6 +64,13 @@ public class ManPiece : Piece {
     /// </summary>
     protected override bool CanCapture(int offsetX, int offsetY, IntVector2 pos)
     {
+        if(board == null)
+        {
+
+            Debug.Log("board is null in " + this.name + ": " + base.position.ToString());
+            return false;
+        }
+
         if (base.board.WithinBounds(pos.x + offsetX, pos.y + offsetY))
         {
             TileHandler nextTile =
