@@ -98,6 +98,7 @@ public class Player : AbstractPlayer {
             {
                 isSucessiveCapture = true;
                 base.board.DeselectTiles();
+                base.board.SelectPiece(base.currentPiece, canMoveTo);
                 return;
             }
         }

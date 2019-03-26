@@ -4,10 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
-using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour {
     public Text turnText;
+    public Text dataText;
     public Image resultPanel;
 
     private enum Turn
@@ -49,9 +49,14 @@ public class GameController : MonoBehaviour {
         StartCoroutine(LateStart(0.5f));
         
         if (turnText == null)
-        {
             Debug.LogError("Turn Text not Found.");
-        }
+        if (dataText == null)
+            Debug.LogError("Data text not founded!");
+
+        if (historic == null)
+            dataText.text = "Data: 0";
+        else
+            dataText.text = "Data: " + historic.Count;
     }
 
     IEnumerator LateStart(float waitTime)
@@ -175,16 +180,6 @@ public class GameController : MonoBehaviour {
             file.Close();
 
             /*
-            if(historic == null)
-            {
-                Debug.Log("historic null.");
-                return;
-            }
-            else
-            {
-                Debug.Log("historic size: " + historic.Count);
-            }
-
             foreach(BoardConfiguration conf in historic)
             {
                 Debug.Log(conf.ToString());

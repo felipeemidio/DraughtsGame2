@@ -54,32 +54,75 @@ public class Bot : AbstractPlayer {
                 .GetChild().GetComponent<Piece>();
         }
 
-        // Add the current board configuration with the chose movement to the config list.
-        BoardConfiguration bConfig = new BoardConfiguration(configuration);
-        bConfig.AddMovement(choseMove, ga.AdaptationScore(choseMove));
-        configList.Add(bConfig);
-
         // Make a function call to find the best adaptation in the historic.
         Movement moveByHistoric = ChoseMovementFromHistoric(configuration);
         
         // Choose between use the historic choice or not.
         if( ga.AdaptationScore(choseMove)/2 < biggestAdaptation)
         {
-            Debug.Log("Select historic movement");
+            Debug.Log("Select historic movement " + biggestAdaptation);
             choseMove = moveByHistoric;
-            useHistoric = true;
-            
+            useHistoric = true;    
         }
         else
         {
             if(moveByHistoric != null)
-                Debug.Log("Historic is a bad choice");
+            {
+                Debug.Log("Historic is a bad choice\n historic:" + biggestAdaptation +
+                     " newMove " + ga.AdaptationScore(choseMove));
+                // Get possible moves for Bot's pieces.
+                ArrayList botPieces = base.board.GetEnemyPieces();
+                ArrayList possibleMoves = ga.GenerateMutations(this, botPieces);
+                // Get moves made that is saved in the historic
+                BoardConfiguration bc = FindBoardConfiguration(configuration);
+                ArrayList movesSaved = new ArrayList();
+                foreach (MovementConfiguration moveConf in bc.GetMovementsConfigurations())
+                {
+                    movesSaved.Add(moveConf.GetMove());
+                }
+
+                // Remove from possible moves that which are in saved in historic
+                ArrayList movesToBeRemoved = new ArrayList();
+                foreach (Movement moveSaved in movesSaved)
+                {
+                    foreach(Movement move in possibleMoves)
+                    {
+                        if (move.Equals(moveSaved))
+                        {
+                            movesToBeRemoved.Add(move);
+                        }
+                    }
+                }
+                foreach(Movement moveToRemove in movesToBeRemoved)
+                {
+                    possibleMoves.Remove(moveToRemove);
+                }
+
+                // If doesn't left any movement, restore the movement and get one randomly.
+                if(possibleMoves.Count == 0)
+                {
+                    possibleMoves = ga.GenerateMutations(this, botPieces);
+                    int randomIndex = UnityEngine.Random.Range(0, possibleMoves.Count);
+                    choseMove = (Movement) possibleMoves[randomIndex];
+                }
+                else
+                {
+                    Debug.Log("RANDOM MOVE");
+                    // Choose the best one with the adaptation function.
+                    choseMove = SelectBestMovement(possibleMoves);
+                }
+            }
             else
                 Debug.Log("New configuration");
 
             useHistoric = false;
         }
-        
+
+        // Add the current board configuration with the chose movement to the config list.
+        BoardConfiguration bConfig = new BoardConfiguration(configuration);
+        bConfig.AddMovement(choseMove, ga.AdaptationScore(choseMove));
+        configList.Add(bConfig);
+
         // Make the movement.
         Debug.Log("Chosed Movement: " + choseMove.ToString());
         lastMovement = choseMove;
@@ -118,7 +161,7 @@ public class Bot : AbstractPlayer {
             {
 
                 adaptation = MeanAdaptation(result, 0f, 1);
-                if(adaptation > biggestAdaptation)
+                if (adaptation > biggestAdaptation)
                 {
                     biggestAdaptation = adaptation;
                     bestMovement = moveConf.GetMove();
@@ -126,7 +169,6 @@ public class Bot : AbstractPlayer {
             }
         }
         //Debug.Log("Best Adaptation: " + biggestAdaptation);
-
         return bestMovement;
     }
 
@@ -139,25 +181,29 @@ public class Bot : AbstractPlayer {
 
         BoardConfiguration bc = FindBoardConfiguration(configuration);
         // Stop when the configuration doesn't exists or reached the max depth.
-        if (bc == null || depth > MAX_DEPTH )
+        if (bc == null)
             return sum/depth;
+        if (depth > MAX_DEPTH)
+            return sum / (depth - 1);
 
         // Select the best adaptation of the possible movements ever tried.
         float betterAdaptation = -1000f;
         foreach(MovementConfiguration mc in bc.GetMovementsConfigurations())
         {
             // if this configuration do not end up with another, return the mean.
+            float confAdaptation = mc.GetAdaptation();
             if (mc.GetResults().Count == 0 &&
-                betterAdaptation < (sum + mc.GetAdaptation()) / (depth + 1))
+                betterAdaptation < (sum + confAdaptation) / depth)
             {
-                betterAdaptation = (sum + mc.GetAdaptation()) / (depth + 1);
+                betterAdaptation = (sum + confAdaptation) / depth;
             }
+
+            Debug.Log("adaptation: " + confAdaptation);
 
             // Get the best mean adaptation of each result.
             foreach (string result in mc.GetResults())
             {
-
-                float adaptation = MeanAdaptation(result, sum + mc.GetAdaptation(), depth + 1);
+                float adaptation = MeanAdaptation(result, sum + confAdaptation, depth + 1);
                 if (adaptation > betterAdaptation)
                 {
                     betterAdaptation = adaptation;
@@ -196,7 +242,14 @@ public class Bot : AbstractPlayer {
         ArrayList botPieces = base.board.GetEnemyPieces();
         ArrayList possibleMoves = this.ga.GenerateMutations(this, botPieces);
 
-        // Select the movement with the biggest adaptation.
+        return SelectBestMovement(possibleMoves);
+    }
+
+    /// <summary>
+    /// Select the movement with the biggest adaptation.
+    /// </summary>
+    private Movement SelectBestMovement(ArrayList possibleMoves)
+    {
         int biggestAdaptation = -100;
         Movement bestMovement = null;
         foreach (Movement move in possibleMoves)

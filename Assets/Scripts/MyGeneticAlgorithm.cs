@@ -16,8 +16,8 @@ public class MyGeneticAlgorithm {
     /// </summary>
     public ArrayList GenerateMutations (AbstractPlayer absPlayer, ArrayList pieces)
     {
-        ArrayList possibleMoves = new ArrayList();
         // Get all possible capture movements. if exists.
+        ArrayList possibleMoves = new ArrayList();
         if (absPlayer.SomePieceCanCapture(pieces))
         {
             absPlayer.SetIsCapturing(true);
