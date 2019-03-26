@@ -20,6 +20,8 @@ public class TileHandler : MonoBehaviour {
     private Board board;
     private int row;
     private int column;
+    private AudioClip sound;
+    private AudioSource soundSource;
 
 	// Use this for initialization
 	void Awake () {

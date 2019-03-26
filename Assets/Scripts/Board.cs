@@ -33,6 +33,9 @@ public class Board : MonoBehaviour {
     // Use this to put to the piece overlay other sprites.
     private GameObject overlay;
     private TileHandler targetTile;
+    // Sound Variables
+    private AudioSource audioSource;
+    private AudioClip sound;
 
     // Possible states of the board.
     private enum State
@@ -49,13 +52,19 @@ public class Board : MonoBehaviour {
     {
         // Set variables.
         state = State.waitingMovement;
-        //currentPiece = null;
         gameController = 
             GameObject.FindGameObjectWithTag("GameController").GetComponent<GameController>();
         overlay = GameObject.FindGameObjectWithTag("OverLay");
         if(overlay == null)
         {
             Debug.LogError("Can't found overlay object");
+        }
+        // Get sound for clicked tile.
+        audioSource = GetComponent<AudioSource>();
+        sound = (AudioClip)Resources.Load("Sounds/morganpurkis_menu-selection");
+        if (sound == null)
+        {
+            Debug.LogWarning("Som de seleção de casas não encontrado");
         }
     }
 
@@ -140,6 +149,13 @@ public class Board : MonoBehaviour {
     {
         paintedPositions = new ArrayList();
         paintedPositions.Add(selectedPiece.GetPosition());
+
+        // Play the sound.
+        if (sound != null)
+        {
+            audioSource.PlayOneShot(sound);
+        }
+
         // Change selected tile's color.
         TileHandler tile = GetTile(selectedPiece.GetPosition());
         tile.GetComponent<Image>().color = selectionColor;
@@ -168,6 +184,12 @@ public class Board : MonoBehaviour {
     {
         pieceToMove = this.GetTile (move.getOriginalPosition())
             .transform.GetChild(0).GetComponent<Piece>();
+
+        // Play the sound.
+        if (sound != null)
+        {
+            audioSource.PlayOneShot(sound);
+        }
 
         if (move.hasCapturedAnEnemy())
         {
