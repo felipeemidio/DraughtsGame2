@@ -69,9 +69,9 @@ public class GameController : MonoBehaviour {
 
 
         if (historic == null)
-            dataText.text = "Data: 0";
+            dataText.text = "Dados: 0";
         else
-            dataText.text = "Data: " + historic.Count;
+            dataText.text = "Dados: " + historic.Count;
     }
 
     IEnumerator LateStart(float waitTime)
@@ -229,14 +229,14 @@ public class GameController : MonoBehaviour {
         if (turn == Turn.playerTurn)
         {
             turn = Turn.enemyTurn;
-            turnText.text = "ENEMY'S TURN";
+            turnText.text = "VEZ DO ADIVERSÁRIO";
             StartCoroutine(BotPlay());
 
         }
         else
         {
             turn = Turn.playerTurn;
-            turnText.text = "YOUR TURN";
+            turnText.text = "SUA VEZ";
             board.SomePieceCanCapture();
             player.Play();
         }
@@ -270,7 +270,7 @@ public class GameController : MonoBehaviour {
             if (WinGame(bot, this.board.GetEnemyPieces()) && resultPanel != null)
             {
                 finalValue = -30f;
-                ShowResultPanel("Y O U   W O N !", true);
+                ShowResultPanel("V I T Ó R I A !", true);
             }
         }
         else
@@ -286,7 +286,7 @@ public class GameController : MonoBehaviour {
             if (WinGame(player, this.board.GetPlayerPieces()))
             {
                 finalValue = 30f;
-                ShowResultPanel("Y O U   L O S E !", false);
+                ShowResultPanel("D E R R O T A !", false);
             }
         }
 
@@ -296,7 +296,7 @@ public class GameController : MonoBehaviour {
         if(turnsKingMoving >= 20 || finalCounter >= 10)
         {
             finalValue = 10f;
-            ShowResultPanel("D R A W !", false);
+            ShowResultPanel("E M P A T E !", false);
         }
         if (isGameOver)
         {
