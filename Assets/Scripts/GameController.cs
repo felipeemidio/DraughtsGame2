@@ -255,7 +255,7 @@ public class GameController : MonoBehaviour {
             if (WinGame(bot, this.board.GetEnemyPieces()) && resultPanel != null)
             {
                 finalValue = -30f;
-                ShowResultPanel("Y O U   W O N !");
+                ShowResultPanel("Y O U   W O N !", true);
             }
         }
         else
@@ -271,7 +271,7 @@ public class GameController : MonoBehaviour {
             if (WinGame(player, this.board.GetPlayerPieces()))
             {
                 finalValue = 30f;
-                ShowResultPanel("Y O U   L O S E !");
+                ShowResultPanel("Y O U   L O S E !", false);
             }
         }
 
@@ -281,7 +281,7 @@ public class GameController : MonoBehaviour {
         if(turnsKingMoving >= 20 || finalCounter >= 10)
         {
             finalValue = 10f;
-            ShowResultPanel("D R A W !");
+            ShowResultPanel("D R A W !", false);
         }
         if (isGameOver)
         {
@@ -303,13 +303,9 @@ public class GameController : MonoBehaviour {
     /// </remarks>
     private bool WinGame(AbstractPlayer absEnemy, ArrayList enemiesPieces)
     {
-        if (enemiesPieces.Count == 0 ||
+        return enemiesPieces.Count == 0 ||
             (!absEnemy.SomePieceCanCapture(enemiesPieces) &&
-            !absEnemy.SomePieceCanWalk(enemiesPieces)))
-        {
-            return true;
-        }
-        return false;
+            !absEnemy.SomePieceCanWalk(enemiesPieces));
     }
 
     /// <summary>
@@ -348,12 +344,13 @@ public class GameController : MonoBehaviour {
     /// Finish the gamez.
     /// Open the result panel with the text given as parameter.
     /// </summary>
-    private void ShowResultPanel(string text)
+    private void ShowResultPanel(string text, bool hasPlayerWin)
     {
         isGameOver = true;
         if (resultPanel.gameObject.activeSelf)
             return;
         resultPanel.gameObject.SetActive(true);
+        resultPanel.GetComponent<PanelController>().PlaySound(hasPlayerWin);
         Text resultText = resultPanel.transform.GetChild(0).GetComponent<Text>();
         resultText.text = text;
     }
