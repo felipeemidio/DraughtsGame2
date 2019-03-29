@@ -9,6 +9,8 @@ public class GameController : MonoBehaviour {
     public Text turnText;
     public Text dataText;
     public Image resultPanel;
+    public Image creditsPanel;
+    public Button creditsButton;
 
     private enum Turn
     {
@@ -31,8 +33,13 @@ public class GameController : MonoBehaviour {
         if (resultPanel != null)
             resultPanel.gameObject.SetActive(false);
         else
-            Debug.LogError("Couldn't find the panel object.");
+            Debug.LogError("Couldn't find the result panel object.");
 
+        if (creditsPanel != null)
+            creditsPanel.gameObject.SetActive(false);
+        else
+            Debug.LogError("Couldn't find the credits panel object.");
+        
         historic = new List<BoardConfiguration>();
         Load();
         bot = new Bot(historic);
@@ -48,10 +55,18 @@ public class GameController : MonoBehaviour {
         board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board> ();
         StartCoroutine(LateStart(0.5f));
         
+        if(creditsButton == null)
+            Debug.LogError("Credits Button not Found.");
+        else
+        {
+            creditsButton.onClick.AddListener(() => creditsPanel.gameObject.SetActive(true));
+        }
         if (turnText == null)
             Debug.LogError("Turn Text not Found.");
         if (dataText == null)
             Debug.LogError("Data text not founded!");
+
+
 
         if (historic == null)
             dataText.text = "Data: 0";
@@ -341,7 +356,7 @@ public class GameController : MonoBehaviour {
     }
 
     /// <summary>
-    /// Finish the gamez.
+    /// Finish the game.
     /// Open the result panel with the text given as parameter.
     /// </summary>
     private void ShowResultPanel(string text, bool hasPlayerWin)
