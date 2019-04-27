@@ -45,6 +45,8 @@ public class MyGeneticAlgorithm {
     /// 1 - Walk.
     /// 3 - Capture.
     /// 2 - Protect an ally.
+    /// 2 - Lose the piece if not move.
+    /// -2 - Is protecting an ally.
     /// -5 - Movement that cost the piece. 
     /// </remarks>
     public int AdaptationScore(Movement move)
@@ -57,16 +59,41 @@ public class MyGeneticAlgorithm {
         {
             score += -5;
         }
-        else if (IsProtectingAFriend(move))
+        if (IsProtectingAFriend(move))
         {
             score -= 2;
         }
-        else if (CanProtectAFriend(move))
+        if (CanProtectAFriend(move))
+        {
+            score += 2;
+        }
+        if (StayLoseAPiece(move))
         {
             score += 2;
         }
 
         return score;
+    }
+
+    /// <summary>
+    /// Return if a piece will be captured if do not move.
+    /// </summary>
+    private bool StayLoseAPiece(Movement move)
+    {
+        IntVector2 currentPosition = move.getOriginalPosition();
+
+        return (CanCaptureMe(currentPosition, 1, 1) ||
+            CanCaptureMe(currentPosition, 1, -1) ||
+            CanCaptureMe(currentPosition, -1, 1) ||
+            CanCaptureMe(currentPosition, -1, -1));
+    }
+
+    /// <summary>
+    /// Return if a piece can be captured by a piece in the Pos+offSet tile.
+    /// </summary>
+    private bool CanCaptureMe(IntVector2 pos, int offSetX, int offSetY)
+    {
+        return this.HasABluePiece(pos, offSetX, offSetY) && this.IsFree(pos, -offSetX, -offSetY);
     }
 
     /// <summary>
@@ -131,6 +158,17 @@ public class MyGeneticAlgorithm {
             return true;
         }
         return false;
+    }
+
+    private bool IsFree (IntVector2 pos, int offsetX, int offsetY)
+    {
+        return this.IsFree(new IntVector2(pos.x + offsetX, pos.y + offsetY)); 
+    }
+
+    private bool IsFree(IntVector2 pos)
+    {
+        TileHandler tile = this.board.GetTile(pos);
+        return (tile != null && !tile.HasChild());
     }
 
     /// <summary>
